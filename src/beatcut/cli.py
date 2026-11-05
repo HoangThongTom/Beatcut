@@ -145,6 +145,24 @@ def cmd_version(_args: argparse.Namespace) -> int:
 
 # ------------------------------------------------------------------ main ----
 
+def cmd_score(args: argparse.Namespace) -> int:
+    from .evaluate import evaluate, format_report, load_labels, load_selection
+
+    picked = load_selection(args.selection)
+    highlights = load_labels(args.labels)
+    if not highlights:
+        print(f"error: {args.labels} contains no highlights", file=sys.stderr)
+        return 1
+
+    metrics = evaluate(picked, highlights, k=args.k, threshold=args.threshold)
+    print(format_report(metrics))
+    if args.json:
+        Path(args.json).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.json).write_text(json.dumps(metrics, indent=2), encoding="utf-8")
+        print(f"\nwrote {args.json}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="beatcut",
@@ -176,6 +194,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--max-segments", type=int)
     p_run.add_argument("--keep-work", action="store_true", help="keep intermediate clips")
     p_run.set_defaults(func=cmd_run)
+
+    p_score = sub.add_parser("score", help="score a selection against labelled highlights")
+    p_score.add_argument("labels", help="label JSON, see docs/eval-protocol.md")
+    p_score.add_argument("selection", help="JSON written by `beatcut analyze --json`")
+    p_score.add_argument("-k", type=int, default=5, help="how many top clips to judge")
+    p_score.add_argument("--threshold", type=float, default=0.5,
+                         help="fraction of a clip that must overlap a label")
+    p_score.add_argument("--json", help="write the metrics to this path")
+    p_score.set_defaults(func=cmd_score)
 
     return parser
 

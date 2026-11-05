@@ -52,7 +52,7 @@ class Config:
         """Build a config from YAML, falling back to the defaults in this class."""
         if path is None:
             return cls()
-        data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+        data = yaml.safe_load(Path(path).read_text(encoding="utf-8-sig")) or {}
         if not isinstance(data, dict):
             raise ValueError(f"{path}: expected a mapping at the top level")
         known = {f.name for f in fields(cls)}

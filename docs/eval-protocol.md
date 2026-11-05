@@ -42,8 +42,14 @@ reproduce, including you in two weeks.
 
 ## Metrics
 
-Run `beatcut analyze VIDEO MUSIC --json out.json`, then score `out.json` against
-the ground truth.
+Run `beatcut analyze VIDEO MUSIC --json out.json`, then score the selection
+against the labels:
+
+```powershell
+beatcut score data\labels\match_01.json out.json -k 5
+```
+
+The metrics below are exactly what that command reports.
 
 **Precision@k** — of the k clips BeatCut picked, how many overlap a real
 highlight by at least 50% of the clip's duration?
