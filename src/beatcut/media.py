@@ -1,0 +1,113 @@
+"""Thin wrappers around ffmpeg/ffprobe.
+
+Every call goes through an argument list (never a shell string) so file names
+with spaces or quotes are safe. Frame streaming is done through a pipe instead
+of decoding with OpenCV, which keeps memory flat on hour-long VODs.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+from collections.abc import Iterator
+from pathlib import Path
+
+import numpy as np
+
+from .types import VideoInfo
+
+FFMPEG = os.environ.get("FFMPEG_BIN", "ffmpeg")
+FFPROBE = os.environ.get("FFPROBE_BIN", "ffprobe")
+
+
+def _parse_rate(value: str) -> float:
+    """'30000/1001' -> 29.97. Returns 0.0 when ffprobe reports something odd."""
+    num, _, den = str(value).partition("/")
+    try:
+        return float(num) / float(den or 1)
+    except (ValueError, ZeroDivisionError):
+        return 0.0
+
+
+def probe(path: str | Path) -> VideoInfo:
+    """Read duration, resolution, frame rate and audio presence."""
+    cmd = [
+        FFPROBE,
+        "-v", "error",
+        "-print_format", "json",
+        "-show_format",
+        "-show_streams",
+        str(path),
+    ]
+    completed = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    data = json.loads(completed.stdout or "{}")
+
+    streams = data.get("streams", [])
+    video = next((s for s in streams if s.get("codec_type") == "video"), None)
+    if video is None:
+        raise ValueError(f"no video stream found in {path}")
+
+    duration = data.get("format", {}).get("duration") or video.get("duration") or 0.0
+    return VideoInfo(
+        path=str(Path(path).resolve()),
+        duration_s=float(duration),
+        width=int(video.get("width") or 0),
+        height=int(video.get("height") or 0),
+        fps=_parse_rate(video.get("avg_frame_rate") or video.get("r_frame_rate") or "0"),
+        has_audio=any(s.get("codec_type") == "audio" for s in streams),
+    )
+
+
+def extract_audio(video: str | Path, out_wav: str | Path, sr: int = 22050) -> Path:
+    """Decode the first audio stream to mono 16-bit PCM at `sr` Hz."""
+    out_wav = Path(out_wav)
+    out_wav.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        FFMPEG, "-y", "-v", "error",
+        "-i", str(video),
+        "-vn", "-ac", "1", "-ar", str(sr), "-c:a", "pcm_s16le",
+        str(out_wav),
+    ]
+    subprocess.run(cmd, check=True)
+    return out_wav
+
+
+def iter_frames_gray(
+    video: str | Path,
+    info: VideoInfo,
+    sample_fps: float = 4.0,
+    width: int = 320,
+) -> Iterator[tuple[float, np.ndarray]]:
+    """Yield `(timestamp_s, gray_frame)` pairs at roughly `sample_fps`."""
+    if info.width <= 0 or info.height <= 0:
+        raise ValueError(f"bad frame size for {video}: {info.width}x{info.height}")
+
+    height = max(2, round(info.height * width / info.width))
+    height += height % 2  # yuv-friendly even height
+
+    cmd = [
+        FFMPEG, "-v", "error",
+        "-i", str(video),
+        "-vf", f"fps={sample_fps},scale={width}:{height}",
+        "-f", "rawvideo", "-pix_fmt", "gray",
+        "-",
+    ]
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    frame_bytes = width * height
+    index = 0
+    try:
+        assert proc.stdout is not None
+        while True:
+            buffer = proc.stdout.read(frame_bytes)
+            if not buffer or len(buffer) < frame_bytes:
+                break
+            frame = np.frombuffer(buffer, dtype=np.uint8).reshape(height, width)
+            yield index / sample_fps, frame
+            index += 1
+    finally:
+        if proc.stdout is not None:
+            proc.stdout.close()
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait()

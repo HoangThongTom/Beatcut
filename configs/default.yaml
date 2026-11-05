@@ -1,0 +1,30 @@
+# BeatCut configuration.
+# Every key here is a field of the Config dataclass in src/beatcut/config.py.
+# Pass it with:  beatcut run VIDEO MUSIC -c configs/default.yaml
+
+# --- analysis ---
+sample_fps: 4.0        # frames per second used for the motion curve
+frame_width: 320       # downscale width before diffing frames
+audio_sr: 22050        # sample rate for audio analysis
+
+# --- scoring (weights are normalized, they do not have to sum to 1) ---
+motion_weight: 0.6     # optical-flow-free frame-difference energy
+audio_weight: 0.4      # loudness spikes: gunfire, explosions, shoutcasters
+
+# --- segment selection ---
+window_s: 6.0          # candidate clip length
+stride_s: 1.5          # hop between candidates
+target_duration_s: 45.0
+max_segments: 10
+min_gap_s: 1.0         # breathing room between two selected clips
+
+# --- beat alignment ---
+beats_per_bar: 4
+snap_tol_s: 0.25       # snap a cut only if a beat/downbeat is this close
+min_clip_s: 2.5
+max_clip_s: 10.0
+
+# --- render ---
+crf: 20
+preset: veryfast
+music_start_s: null    # null -> start the music on the first downbeat

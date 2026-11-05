@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beatcut"
+version = "0.1.0"
+description = "Turn long gameplay VODs into beat-synced highlight montages."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+authors = [{ name = "Hoang Thong" }]
+keywords = ["computer-vision", "video-understanding", "beat-detection", "ffmpeg", "gaming"]
+dependencies = [
+    "numpy>=1.26,<3",
+    "librosa>=0.10.1",
+    "soundfile>=0.12",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+cv = ["opencv-python-headless>=4.9", "ultralytics>=8.2"]
+app = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "python-multipart>=0.0.9",
+    "gradio>=4.44",
+]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+beatcut = "beatcut.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,49 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# --- Machine learning artifacts ---
+runs/
+wandb/
+*.onnx
+*.engine
+*.pt
+*.pth
+
+# --- Media: never commit raw footage or renders ---
+data/raw/*
+data/interim/*
+data/labels/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/labels/.gitkeep
+outputs/*
+!outputs/.gitkeep
+*.mp4
+*.mkv
+*.mov
+*.wav
+*.mp3
+*.flac
+
+# --- Local config ---
+.env
+*.local.yaml
+
+# --- Local scratch: fixtures, experiments, downloaded tools ---
+scratch/
+tools/
+install.log
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
