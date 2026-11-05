@@ -30,6 +30,36 @@ def _parse_rate(value: str) -> float:
         return 0.0
 
 
+def _display_size(video: dict) -> tuple[int, int]:
+    """Coded size, swapped when a rotation matrix makes ffmpeg swap it too.
+
+    Phone recordings are often stored as landscape frames plus a rotation
+    flag. ffmpeg's autorotate applies that flag while decoding, so the frames
+    we receive are portrait even though ffprobe reports 1920x1080. Reporting
+    the displayed size keeps the frame-buffer maths in `iter_frames_gray`
+    correct and makes the manifest match what a human sees.
+    """
+    width = int(video.get("width") or 0)
+    height = int(video.get("height") or 0)
+
+    rotation = 0.0
+    for side_data in video.get("side_data_list") or []:
+        if "rotation" in side_data:
+            try:
+                rotation = float(side_data["rotation"])
+            except (TypeError, ValueError):
+                pass
+    if rotation == 0.0:
+        try:
+            rotation = float((video.get("tags") or {}).get("rotate", 0))
+        except (TypeError, ValueError):
+            rotation = 0.0
+
+    if abs(rotation) % 180 == 90:
+        width, height = height, width
+    return width, height
+
+
 def probe(path: str | Path) -> VideoInfo:
     """Read duration, resolution, frame rate and audio presence."""
     cmd = [
@@ -49,11 +79,12 @@ def probe(path: str | Path) -> VideoInfo:
         raise ValueError(f"no video stream found in {path}")
 
     duration = data.get("format", {}).get("duration") or video.get("duration") or 0.0
+    width, height = _display_size(video)
     return VideoInfo(
         path=str(Path(path).resolve()),
         duration_s=float(duration),
-        width=int(video.get("width") or 0),
-        height=int(video.get("height") or 0),
+        width=width,
+        height=height,
         fps=_parse_rate(video.get("avg_frame_rate") or video.get("r_frame_rate") or "0"),
         has_audio=any(s.get("codec_type") == "audio" for s in streams),
     )
