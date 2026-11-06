@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import __version__
+from . import __version__, cache
 from .beats import align_segment, bar_duration, detect_beats, quantize_duration
 from .config import Config
 from .media import extract_audio, frame_gaps, probe
@@ -67,18 +67,29 @@ def analyze(
 
     info = probe(video)
 
-    curves: dict[str, tuple] = {}
-    motion_times, motion_values = motion_energy_curve(
-        str(video), info, cfg.sample_fps, cfg.frame_width
-    )
-    curves["motion"] = (motion_times, motion_values)
+    cache_dir = Path(cfg.cache_dir)
+    cache_key = f"{cache.fingerprint(video, cfg)}-{cache.fingerprint(music, cfg)}"
+    cached = cache.load(cache_dir, cache_key) if cfg.use_cache else None
 
-    if info.has_audio:
-        gameplay_wav = extract_audio(video, work / "gameplay_audio.wav", cfg.audio_sr)
-        curves["audio"] = audio_energy_curve(str(gameplay_wav), cfg.audio_sr)
+    if cached is not None:
+        curves, grid = cached
+        motion_times = curves["motion"][0]
+    else:
+        curves = {}
+        motion_times, motion_values = motion_energy_curve(
+            str(video), info, cfg.sample_fps, cfg.frame_width
+        )
+        curves["motion"] = (motion_times, motion_values)
 
-    music_wav = extract_audio(music, work / "music.wav", cfg.audio_sr)
-    grid = detect_beats(str(music_wav), cfg.audio_sr, cfg.beats_per_bar)
+        if info.has_audio:
+            gameplay_wav = extract_audio(video, work / "gameplay_audio.wav", cfg.audio_sr)
+            curves["audio"] = audio_energy_curve(str(gameplay_wav), cfg.audio_sr)
+
+        music_wav = extract_audio(music, work / "music.wav", cfg.audio_sr)
+        grid = detect_beats(str(music_wav), cfg.audio_sr, cfg.beats_per_bar)
+
+        if cfg.use_cache:
+            cache.save(cache_dir, cache_key, curves, grid)
 
     weights = {"motion": cfg.motion_weight, "audio": cfg.audio_weight}
     fused = fuse(motion_times, curves, weights)

@@ -37,3 +37,7 @@ music_start_s: null    # null -> start the music on the first downbeat
 keep_game_audio: true    # false -> music only, no game sound
 game_audio_volume: 0.5   # game sound sits under the music
 music_volume: 0.7
+
+# --- caching ---
+use_cache: true          # reuse the motion curve between config tweaks
+cache_dir: data/interim/cache

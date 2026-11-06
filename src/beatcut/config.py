@@ -48,6 +48,12 @@ class Config:
     game_audio_volume: float = 0.5
     music_volume: float = 0.7
 
+    # --- caching ---
+    # The motion curve costs one full decode of the video. Selection parameters
+    # do not change it, so cache it and make config tuning take seconds.
+    use_cache: bool = True
+    cache_dir: str = "data/interim/cache"
+
     def __post_init__(self) -> None:
         if self.window_s <= 0 or self.stride_s <= 0:
             raise ValueError("window_s and stride_s must be positive")

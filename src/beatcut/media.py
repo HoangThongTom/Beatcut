@@ -112,11 +112,19 @@ def find_gaps(
 
 
 def frame_gaps(path: str | Path, factor: float = 1.6) -> list[tuple[float, float]]:
-    """Read source frame timestamps with ffprobe and return the stutter ranges."""
+    """Return the ranges where the recording dropped frames.
+
+    Reads packet timestamps, not frame timestamps: ``-show_entries frame=``
+    forces ffprobe to decode every frame, which on a 60fps 1170p HEVC phone
+    recording takes minutes. Packets carry the same presentation timing and
+    parse in about a second, because nothing is decoded.
+
+    Packets arrive in decode order, so they are sorted by pts before diffing.
+    """
     cmd = [
         FFPROBE, "-v", "error",
         "-select_streams", "v:0",
-        "-show_entries", "frame=pts_time",
+        "-show_entries", "packet=pts_time",
         "-of", "csv=p=0",
         str(path),
     ]
@@ -129,7 +137,7 @@ def frame_gaps(path: str | Path, factor: float = 1.6) -> list[tuple[float, float
             times.append(float(value))
         except ValueError:
             continue
-    return find_gaps(np.asarray(times, dtype=float), factor)
+    return find_gaps(np.sort(np.asarray(times, dtype=float)), factor)
 
 
 def extract_audio(video: str | Path, out_wav: str | Path, sr: int = 22050) -> Path:
