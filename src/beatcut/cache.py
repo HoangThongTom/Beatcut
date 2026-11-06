@@ -10,6 +10,7 @@ config tweak should not decode the video again.
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 
 import numpy as np
@@ -33,6 +34,32 @@ def fingerprint(path: str | Path, cfg: Config) -> str:
         ]
     )
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def kill_key(base_key: str, crop: list[int] | None) -> str:
+    """Kill detections depend on the crop box, not on the curve settings."""
+    if not crop:
+        return base_key
+    return f"{base_key}-{'_'.join(str(int(v)) for v in crop)}"
+
+
+def load_kills(cache_dir: str | Path, key: str) -> list[float] | None:
+    """Kill timestamps are cached separately: the OCR pass is its own slow step."""
+    path = Path(cache_dir) / f"{key}.kills.json"
+    if not path.exists():
+        return None
+    try:
+        return [float(value) for value in json.loads(path.read_text(encoding="utf-8"))]
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def save_kills(cache_dir: str | Path, key: str, times: list[float]) -> None:
+    path = Path(cache_dir)
+    path.mkdir(parents=True, exist_ok=True)
+    (path / f"{key}.kills.json").write_text(
+        json.dumps([round(float(t), 2) for t in times]), encoding="utf-8"
+    )
 
 
 def load(

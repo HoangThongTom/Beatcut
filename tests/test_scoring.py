@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 
-from beatcut.scoring import fuse, normalize
+from beatcut.scoring import boost_curve, fuse, normalize
 
 
 def test_normalize_maps_to_unit_range():
@@ -43,3 +44,23 @@ def test_fuse_stays_in_unit_range():
 
     assert out.min() >= 0.0
     assert out.max() <= 1.0
+
+
+def test_boost_curve_peaks_on_the_event():
+    times = np.arange(0.0, 20.0, 0.5)
+    scores = np.zeros_like(times)
+
+    boosted = boost_curve(times, scores, [10.0], window_s=4.0, weight=1.0)
+
+    assert boosted.max() == pytest.approx(1.0, abs=0.01)
+    assert times[int(np.argmax(boosted))] == 10.0
+
+
+def test_boost_curve_without_events_is_a_copy():
+    times = np.arange(0.0, 5.0, 0.5)
+    scores = np.ones_like(times)
+
+    boosted = boost_curve(times, scores, [])
+
+    assert np.allclose(boosted, scores)
+    assert boosted is not scores

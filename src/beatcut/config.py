@@ -54,9 +54,18 @@ class Config:
     use_cache: bool = True
     cache_dir: str = "data/interim/cache"
 
+    # --- kill detection ---
+    # x, y, width, height of the kill digit in the HUD. None disables it.
+    kill_crop: list[int] | None = None
+    kill_window_s: float = 5.0
+    kill_boost: float = 0.6
+
     def __post_init__(self) -> None:
         if self.window_s <= 0 or self.stride_s <= 0:
             raise ValueError("window_s and stride_s must be positive")
+        if self.kill_crop is not None:
+            if len(self.kill_crop) != 4 or min(self.kill_crop) <= 0:
+                raise ValueError("kill_crop must be four positive integers x,y,w,h")
         if self.min_clip_s > self.max_clip_s:
             raise ValueError("min_clip_s cannot exceed max_clip_s")
         if self.motion_weight < 0 or self.audio_weight < 0:

@@ -41,3 +41,9 @@ music_volume: 0.7
 # --- caching ---
 use_cache: true          # reuse the motion curve between config tweaks
 cache_dir: data/interim/cache
+
+# --- kill detection ---
+# x, y, width, height of the kill digit in the HUD; null disables it.
+kill_crop: [214, 46, 54, 52]
+kill_window_s: 5.0       # how far a kill lifts the score around it
+kill_boost: 0.6          # how much it lifts

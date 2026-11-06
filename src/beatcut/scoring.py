@@ -84,3 +84,27 @@ def fuse(
         weight_sum += weight
 
     return total / weight_sum if weight_sum > 0 else total
+
+
+def boost_curve(
+    times: np.ndarray,
+    scores: np.ndarray,
+    event_times: list[float],
+    window_s: float = 5.0,
+    weight: float = 0.6,
+) -> np.ndarray:
+    """Add a bump to the score curve around each detected event.
+
+    A kill is a strong signal but a very short one; the interesting footage
+    starts a second or two before it. A Gaussian bump spreads the signal over
+    the surrounding window so whole clips get lifted, not single samples.
+    """
+    times = np.asarray(times, dtype=float)
+    boosted = np.asarray(scores, dtype=float).copy()
+    if not event_times:
+        return boosted
+
+    sigma = max(0.5, window_s / 2.0)
+    for event_time in event_times:
+        boosted += weight * np.exp(-0.5 * ((times - event_time) / sigma) ** 2)
+    return boosted

@@ -16,7 +16,7 @@ from .beats import align_segment, bar_duration, detect_beats, quantize_duration
 from .config import Config
 from .media import extract_audio, frame_gaps, probe
 from .render import concat, cut, mux_mixed, mux_music
-from .scoring import audio_energy_curve, fuse, motion_energy_curve
+from .scoring import audio_energy_curve, boost_curve, fuse, motion_energy_curve
 from .select import select_segments, window_scores
 from .types import BeatGrid, Segment, VideoInfo
 
@@ -28,6 +28,7 @@ class Analysis:
     segments: list[Segment]
     bar_s: float = 0.0
     dropped_windows: int = 0
+    kill_times: list[float] | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -35,6 +36,8 @@ class Analysis:
             "music": self.grid.to_dict(),
             "bar_s": round(self.bar_s, 4),
             "dropped_windows": self.dropped_windows,
+            "kill_count": len(self.kill_times or []),
+            "kill_times": [round(t, 2) for t in (self.kill_times or [])],
             "segments": [segment.to_dict() for segment in self.segments],
             "total_duration_s": round(sum(s.duration for s in self.segments), 3),
         }
@@ -93,6 +96,23 @@ def analyze(
 
     weights = {"motion": cfg.motion_weight, "audio": cfg.audio_weight}
     fused = fuse(motion_times, curves, weights)
+
+    kill_times: list[float] = []
+    if cfg.kill_crop:
+        kill_cache_key = cache.kill_key(cache_key, cfg.kill_crop)
+        kill_times = (
+            cache.load_kills(cache_dir, kill_cache_key) if cfg.use_cache else None
+        ) or []
+        if not kill_times:
+            from .scoreboard import extract_kills
+
+            events = extract_kills(video, tuple(cfg.kill_crop), 2.0)
+            kill_times = [event.time for event in events]
+            if cfg.use_cache:
+                cache.save_kills(cache_dir, kill_cache_key, kill_times)
+        fused = boost_curve(
+            motion_times, fused, kill_times, cfg.kill_window_s, cfg.kill_boost
+        )
 
     candidates = window_scores(motion_times, fused, cfg.window_s, cfg.stride_s)
     dropped = 0
@@ -162,6 +182,7 @@ def analyze(
         segments=aligned,
         bar_s=bar_s,
         dropped_windows=dropped,
+        kill_times=kill_times,
     )
     return analysis
 
