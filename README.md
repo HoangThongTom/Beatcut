@@ -96,6 +96,8 @@ concat, mux) works.
 beatcut doctor                     # environment check
 beatcut analyze VIDEO MUSIC        # print the chosen clips, render nothing
 beatcut run VIDEO MUSIC -o OUT     # full pipeline
+beatcut kills VIDEO --box x,y,w,h  # OCR the in-game kill counter
+beatcut score LABELS SELECTION     # precision@k against labels
 beatcut version
 ```
 
