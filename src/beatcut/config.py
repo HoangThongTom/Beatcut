@@ -37,6 +37,13 @@ class Config:
     preset: str = "veryfast"
     music_start_s: float | None = None
 
+    # --- audio mix ---
+    # Keeping the game sound is what makes a montage feel like gameplay rather
+    # than a slideshow with a song over it.
+    keep_game_audio: bool = True
+    game_audio_volume: float = 0.5
+    music_volume: float = 0.7
+
     def __post_init__(self) -> None:
         if self.window_s <= 0 or self.stride_s <= 0:
             raise ValueError("window_s and stride_s must be positive")
@@ -46,6 +53,12 @@ class Config:
             raise ValueError("weights must be non-negative")
         if self.motion_weight == 0 and self.audio_weight == 0:
             raise ValueError("at least one scoring weight must be positive")
+        for name, value in (
+            ("game_audio_volume", self.game_audio_volume),
+            ("music_volume", self.music_volume),
+        ):
+            if not 0.0 <= value <= 2.0:
+                raise ValueError(f"{name} must be between 0 and 2")
 
     @classmethod
     def load(cls, path: str | Path | None = None) -> Config:

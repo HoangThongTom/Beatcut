@@ -15,7 +15,7 @@ from . import __version__
 from .beats import align_segment, detect_beats
 from .config import Config
 from .media import extract_audio, probe
-from .render import concat, cut, mux_music
+from .render import concat, cut, mux_mixed, mux_music
 from .scoring import audio_energy_curve, fuse, motion_energy_curve
 from .select import select_segments, window_scores
 from .types import BeatGrid, Segment, VideoInfo
@@ -126,8 +126,16 @@ def run(
 
     analysis = analyze(video, music, cfg, work_dir=work)
 
+    keep_game = cfg.keep_game_audio and analysis.video.has_audio
     parts = [
-        cut(video, segment, work / f"part_{index:02d}.mp4", cfg.crf, cfg.preset)
+        cut(
+            video,
+            segment,
+            work / f"part_{index:02d}.mp4",
+            cfg.crf,
+            cfg.preset,
+            with_audio=keep_game,
+        )
         for index, segment in enumerate(analysis.segments)
     ]
     silent = concat(parts, work / "montage_silent.mp4")
@@ -136,13 +144,17 @@ def run(
     if music_start is None:
         music_start = analysis.grid.downbeats[0] if analysis.grid.downbeats else 0.0
 
-    mux_music(silent, music, out, music_start)
+    if keep_game:
+        mux_mixed(silent, music, out, music_start, cfg.game_audio_volume, cfg.music_volume)
+    else:
+        mux_music(silent, music, out, music_start)
 
     manifest = {
         "beatcut_version": __version__,
         "elapsed_s": round(time.perf_counter() - started, 2),
         "output": str(out.resolve()),
         "music_start_s": round(float(music_start), 3),
+        "game_audio_mixed": keep_game,
         "config": cfg.to_dict(),
         "analysis": analysis.to_dict(),
     }

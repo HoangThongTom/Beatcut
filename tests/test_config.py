@@ -42,3 +42,13 @@ def test_impossible_clip_lengths_are_rejected():
 def test_zero_weights_are_rejected():
     with pytest.raises(ValueError, match="weight"):
         Config(motion_weight=0.0, audio_weight=0.0)
+
+
+def test_volume_above_range_is_rejected():
+    with pytest.raises(ValueError, match="game_audio_volume"):
+        Config(game_audio_volume=5.0)
+
+
+def test_negative_music_volume_is_rejected():
+    with pytest.raises(ValueError, match="music_volume"):
+        Config(music_volume=-0.1)

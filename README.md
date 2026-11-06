@@ -30,7 +30,7 @@ video ──► probe ──► motion energy ─┐
 music ──► beats/downbeats ─────────────────────────────► snap cut points to grid
                                                                           │
                                                                           ▼
-                                             ffmpeg: cut ─► concat ─► mux music
+                          ffmpeg: cut ─► concat ─► mix game audio + music
 ```
 
 | Stage | Module | What it does |
@@ -40,7 +40,7 @@ music ──► beats/downbeats ────────────────
 | Scoring | `scoring.py` | frame-difference motion energy + short-time RMS loudness |
 | Beats | `beats.py` | tempo, beats, downbeats (librosa) + snapping helpers |
 | Selection | `select.py` | window scores, greedy top-k with a minimum gap |
-| Render | `render.py` | re-encoded cuts, concat demuxer, music mux |
+| Render | `render.py` | re-encoded cuts, concat demuxer, game audio mixed under the music |
 
 More detail, including the design decisions and their trade-offs, is in
 [docs/architecture.md](docs/architecture.md).
