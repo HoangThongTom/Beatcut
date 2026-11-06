@@ -25,8 +25,8 @@ app = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",
     "python-multipart>=0.0.9",
-    "gradio>=4.44",
 ]
+ui = ["gradio>=4.44"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
 [project.scripts]
