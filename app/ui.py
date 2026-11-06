@@ -9,12 +9,19 @@ without it installed.
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
 import uuid
 from pathlib import Path
 
-from beatcut.media import probe
-from beatcut.pipeline import run
+# On a Space the package is copied in, not installed, so the source tree has to
+# be importable by path. Locally the editable install makes this a no-op.
+_SRC = Path(__file__).resolve().parent.parent / "src"
+if _SRC.is_dir() and str(_SRC) not in sys.path:
+    sys.path.insert(0, str(_SRC))
+
+from beatcut.media import probe  # noqa: E402
+from beatcut.pipeline import run  # noqa: E402
 
 MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "60"))
 JOBS = Path(tempfile.gettempdir()) / "beatcut-jobs"

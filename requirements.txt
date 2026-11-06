@@ -1,6 +1,10 @@
 # Hugging Face installs this before launching the Gradio app.
-# The editable install picks up the package itself from src/.
--e .
-
-gradio>=4.44
+#
+# There is deliberately no editable install here: pip resolves `-e .` relative to
+# its working directory, which is not the repository root during a Space build.
+# app/ui.py puts src/ on sys.path instead.
+numpy>=1.26,<3
+librosa>=0.10.1
+soundfile>=0.12
+pyyaml>=6.0
 rapidocr-onnxruntime>=1.4
