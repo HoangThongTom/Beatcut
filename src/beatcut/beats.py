@@ -9,6 +9,8 @@ only `detect_beats` would change.
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 from .types import BeatGrid
@@ -74,6 +76,35 @@ def snap(time_s: float, grid: list[float] | np.ndarray, tol_s: float) -> float:
         return time_s
     nearest = int(np.argmin(np.abs(arr - time_s)))
     return float(arr[nearest]) if abs(arr[nearest] - time_s) <= tol_s else time_s
+
+
+def bar_duration(tempo_bpm: float, beats_per_bar: int = 4) -> float:
+    """Length of one bar in seconds. 0.0 when the tempo is unknown."""
+    if tempo_bpm <= 0 or beats_per_bar <= 0:
+        return 0.0
+    return beats_per_bar * 60.0 / tempo_bpm
+
+
+def quantize_duration(
+    duration: float,
+    bar_s: float,
+    min_clip_s: float,
+    max_clip_s: float,
+) -> float:
+    """Snap a clip length to a whole number of bars.
+
+    Clip lengths are what make the montage land on the beat: the music is laid
+    over the concatenated result, so cut points sit at cumulative offsets. If
+    every clip is a whole number of bars, every cut falls on a bar line.
+    """
+    if bar_s <= 0:
+        return min(max(duration, min_clip_s), max_clip_s)
+
+    shortest = max(1, math.ceil(min_clip_s / bar_s - 1e-9))
+    longest = max(1, math.floor(max_clip_s / bar_s + 1e-9))
+    bars = max(1, round(duration / bar_s))
+    bars = min(max(bars, shortest), max(longest, shortest))
+    return bars * bar_s
 
 
 def align_segment(

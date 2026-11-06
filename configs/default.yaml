@@ -23,6 +23,10 @@ beats_per_bar: 4
 snap_tol_s: 0.25       # snap a cut only if a beat/downbeat is this close
 min_clip_s: 2.5
 max_clip_s: 10.0
+quantize_to_bars: true # clip length = whole bars, so every cut lands on a bar
+
+# --- source quality ---
+skip_frame_drops: true # ignore windows that contain a recording stutter
 
 # --- render ---
 crf: 20

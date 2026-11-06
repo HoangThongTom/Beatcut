@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from . import __version__
-from .beats import align_segment, detect_beats
+from .beats import align_segment, bar_duration, detect_beats, quantize_duration
 from .config import Config
-from .media import extract_audio, probe
+from .media import extract_audio, frame_gaps, probe
 from .render import concat, cut, mux_mixed, mux_music
 from .scoring import audio_energy_curve, fuse, motion_energy_curve
 from .select import select_segments, window_scores
@@ -26,11 +26,15 @@ class Analysis:
     video: VideoInfo
     grid: BeatGrid
     segments: list[Segment]
+    bar_s: float = 0.0
+    dropped_windows: int = 0
 
     def to_dict(self) -> dict:
         return {
             "video": self.video.to_dict(),
             "music": self.grid.to_dict(),
+            "bar_s": round(self.bar_s, 4),
+            "dropped_windows": self.dropped_windows,
             "segments": [segment.to_dict() for segment in self.segments],
             "total_duration_s": round(sum(s.duration for s in self.segments), 3),
         }
@@ -80,31 +84,75 @@ def analyze(
     fused = fuse(motion_times, curves, weights)
 
     candidates = window_scores(motion_times, fused, cfg.window_s, cfg.stride_s)
+    dropped = 0
+    if cfg.skip_frame_drops and candidates:
+        gaps = frame_gaps(video)
+        if gaps:
+            kept = [
+                candidate
+                for candidate in candidates
+                if not any(gap_start < candidate[1] and gap_end > candidate[0]
+                           for gap_start, gap_end in gaps)
+            ]
+            dropped = len(candidates) - len(kept)
+            candidates = kept
+
     if not candidates:
         raise RuntimeError(
-            f"video is shorter than one window ({cfg.window_s:.1f}s); "
-            "lower window_s in your config or use a longer VOD"
+            f"no usable window ({cfg.window_s:.1f}s); the video is shorter than "
+            "one window, or every window contains a recording stutter"
         )
 
     picked = select_segments(
         candidates, cfg.target_duration_s, cfg.min_gap_s, cfg.max_segments
     )
 
-    aligned: list[Segment] = []
-    for segment in picked:
-        start, end = align_segment(
-            segment.start,
-            segment.end,
-            grid,
-            snap_tol_s=cfg.snap_tol_s,
-            min_clip_s=cfg.min_clip_s,
-            max_clip_s=cfg.max_clip_s,
-        )
-        end = min(end, info.duration_s)
-        start = max(0.0, min(start, end - cfg.min_clip_s))
-        aligned.append(Segment(round(start, 3), round(end, 3), round(segment.score, 4)))
+    # Snap each clip to a whole number of bars. Cuts land at cumulative offsets,
+    # so if every clip is a multiple of one bar and the music starts on a
+    # downbeat, every cut in the montage lands on a bar line. Snapping the
+    # source timestamps instead would align nothing: the music is laid over the
+    # concatenated result, not over the source timeline.
+    bar_s = bar_duration(grid.tempo, cfg.beats_per_bar)
+    fps = info.fps if info.fps > 0 else 30.0
 
-    return Analysis(video=info, grid=grid, segments=aligned)
+    aligned: list[Segment] = []
+    ideal_end = 0.0     # exact bar grid, in seconds
+    emitted = 0         # frames actually encoded so far
+    for segment in picked:
+        if cfg.quantize_to_bars and bar_s > 0:
+            length = quantize_duration(
+                segment.duration, bar_s, cfg.min_clip_s, cfg.max_clip_s
+            )
+            # Rounding each clip on its own lets the error accumulate: after
+            # eight clips the last cut can sit 50ms off the grid. Rounding the
+            # cumulative position instead keeps every cut within half a frame.
+            ideal_end += length
+            end_frame = round(ideal_end * fps)
+            clip_length = (end_frame - emitted) / fps
+            emitted = end_frame
+            start = segment.start
+            end = min(start + clip_length, info.duration_s)
+        else:
+            start, end = align_segment(
+                segment.start,
+                segment.end,
+                grid,
+                snap_tol_s=cfg.snap_tol_s,
+                min_clip_s=cfg.min_clip_s,
+                max_clip_s=cfg.max_clip_s,
+            )
+            end = min(end, info.duration_s)
+        start = max(0.0, min(start, end - cfg.min_clip_s))
+        aligned.append(Segment(start, end, segment.score))
+
+    analysis = Analysis(
+        video=info,
+        grid=grid,
+        segments=aligned,
+        bar_s=bar_s,
+        dropped_windows=dropped,
+    )
+    return analysis
 
 
 def run(

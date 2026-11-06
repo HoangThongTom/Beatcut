@@ -3,7 +3,23 @@ without ffmpeg installed."""
 
 from __future__ import annotations
 
-from beatcut.media import _display_size
+import numpy as np
+
+from beatcut.media import _display_size, find_gaps
+
+
+def test_find_gaps_ignores_uniform_frame_spacing():
+    assert find_gaps(np.arange(0.0, 3.0, 1 / 30)) == []
+
+
+def test_find_gaps_detects_a_dropped_frame_run():
+    times = np.concatenate([np.arange(0.0, 1.0, 1 / 30), np.arange(1.233, 2.0, 1 / 30)])
+
+    gaps = find_gaps(times)
+
+    assert len(gaps) == 1
+    assert 0.95 <= gaps[0][0] <= 1.01
+    assert gaps[0][1] - gaps[0][0] > 0.2
 
 
 def test_plain_stream_keeps_coded_size():

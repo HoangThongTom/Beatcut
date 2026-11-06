@@ -31,6 +31,10 @@ class Config:
     snap_tol_s: float = 0.25
     min_clip_s: float = 2.5
     max_clip_s: float = 10.0
+    quantize_to_bars: bool = True
+
+    # --- source quality ---
+    skip_frame_drops: bool = True
 
     # --- render ---
     crf: int = 20

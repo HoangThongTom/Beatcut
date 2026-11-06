@@ -90,6 +90,48 @@ def probe(path: str | Path) -> VideoInfo:
     )
 
 
+def find_gaps(
+    times: np.ndarray,
+    factor: float = 1.6,
+    min_gap_s: float = 0.08,
+) -> list[tuple[float, float]]:
+    """Ranges where consecutive frames are further apart than they should be.
+
+    A phone screen recorder drops frames when the device stutters; cutting a
+    clip through one of those holes is what a viewer sees as a freeze.
+    """
+    times = np.asarray(times, dtype=float)
+    if times.size < 3:
+        return []
+    steps = np.diff(times)
+    threshold = max(float(np.median(steps)) * factor, min_gap_s)
+    return [
+        (float(times[i]), float(times[i + 1]))
+        for i in np.where(steps > threshold)[0]
+    ]
+
+
+def frame_gaps(path: str | Path, factor: float = 1.6) -> list[tuple[float, float]]:
+    """Read source frame timestamps with ffprobe and return the stutter ranges."""
+    cmd = [
+        FFPROBE, "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "frame=pts_time",
+        "-of", "csv=p=0",
+        str(path),
+    ]
+    completed = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+    times: list[float] = []
+    for line in completed.stdout.splitlines():
+        value = line.strip().split(",")[0]
+        try:
+            times.append(float(value))
+        except ValueError:
+            continue
+    return find_gaps(np.asarray(times, dtype=float), factor)
+
+
 def extract_audio(video: str | Path, out_wav: str | Path, sr: int = 22050) -> Path:
     """Decode the first audio stream to mono 16-bit PCM at `sr` Hz."""
     out_wav = Path(out_wav)
