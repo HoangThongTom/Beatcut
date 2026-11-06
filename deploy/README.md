@@ -1,8 +1,12 @@
 # Deploying to Hugging Face Spaces
 
-The Space is a *separate* git repository, and Spaces requires its app card at the
-root `README.md`. Rather than overwrite the project README, the Space is published
-from a throwaway branch built from [`space-README.md`](space-README.md).
+Hugging Face put **Docker Spaces behind a paywall** (credits or PRO). The free
+route is the **Gradio SDK**, which is what this repository is set up for:
+`app/ui.py` is a small form over the pipeline, and `requirements.txt` plus
+`packages.txt` tell the Space how to install it.
+
+The `Dockerfile` is still useful locally (`docker build` / `docker run`), it is
+just not the deployment target any more.
 
 ## One-time setup on huggingface.co
 
@@ -11,16 +15,19 @@ from a throwaway branch built from [`space-README.md`](space-README.md).
    once.
 3. **New Space**:
    - name: `beatcut`
-   - SDK: **Docker**
+   - SDK: **Gradio**
    - hardware: **CPU basic (free)**
    - visibility: **Public**
 4. In the new Space: **Settings → Variables and secrets**, add
    `BEATCUT_MAX_DURATION_S = 60`.
-   The defaults (180 s) are too long for the proxy in front of Spaces.
+   Rendering is synchronous; the default of 180 s is longer than the proxy in
+   front of Spaces will hold a request.
 
 ## Publish
 
-Run from the repository root. `<user>` is your Hugging Face username.
+Spaces requires its app card at the root `README.md`, which would overwrite the
+project README, so the Space is published from a throwaway branch. Run from the
+repository root; `<user>` is your Hugging Face username.
 
 ```powershell
 git checkout -b hf-space
@@ -31,20 +38,22 @@ git checkout main
 git branch -D hf-space
 ```
 
-`--force` is there on purpose: a new Space is initialised with its own placeholder
-README commit, so a normal push is rejected as non-fast-forward. The space is
-yours and the placeholder has no content worth keeping.
-
 When git asks for credentials, the username is your Hugging Face username and the
 password is the **token**, not your account password.
 
-The first build takes about ten minutes: the base image, ffmpeg, and the Python
-dependencies. Later pushes rebuild only what changed.
+`--force` is there on purpose: a new Space is initialised with its own placeholder
+README commit, so a normal push is rejected as non-fast-forward.
 
 ## Verifying the Space
 
-- `/health` should return the caps it is running with.
-- Upload a clip under the limit and a music track; the response is the montage.
+The Space installs `requirements.txt`, runs `packages.txt` (which apt-installs
+ffmpeg), then launches `app/ui.py`. First boot takes a few minutes.
 
-If the build fails, the Space's **Logs** tab shows the Docker build output, which
-is the same output `docker build` produces locally.
+If the build fails, the **Logs** tab shows the pip and apt output. The usual
+culprits are the editable install (`-e .`) and the Python version, which is pinned
+to 3.11 in the app card because `numba` has no wheels for 3.13+.
+
+## Updating it later
+
+Re-run the publish block after any change to `src/`, `app/` or the pipeline
+config. The branch is recreated each time, so nothing lingers.

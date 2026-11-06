@@ -161,6 +161,7 @@ The honest number to fill in next is precision@5 against labelled highlights.
 
 ```
 src/beatcut/     pipeline library (importable, no CLI side effects)
+app/ui.py        Gradio demo (the free deploy target)
 app/api.py       minimal FastAPI wrapper (M3)
 configs/         YAML run configs
 scripts/         bootstrap.ps1

@@ -1,0 +1,6 @@
+# Hugging Face installs this before launching the Gradio app.
+# The editable install picks up the package itself from src/.
+-e .
+
+gradio>=4.44
+rapidocr-onnxruntime>=1.4
