@@ -31,11 +31,13 @@ beat), librosa beat tracking, xử lý video dài mà không hết RAM.
 
 Mục tiêu: vượt baseline motion+audio, và **chứng minh** là vượt.
 
-- [ ] Thêm scorer `killfeed`: crop vùng killfeed, PaddleOCR, parse thành event.
-      Đây là hướng rẻ nhất — không cần train, chỉ cần đúng toạ độ crop.
+- [x] Scorer `killcounter`: crop ô đếm hạ gục ở HUD, OCR lấy số, phát hiện lúc số
+      tăng → kill event. Đã có lệnh `beatcut kills`. Đây là hướng rẻ nhất — không
+      cần train, không cần GPU.
+- [ ] Nối kill event vào `scoring.fuse()` dưới dạng một curve cộng thêm, với
+      weight trong config
 - [ ] Thêm scorer `enemy`: fine-tune YOLOv8n trên 800–1200 frame tự label (CVAT
       hoặc Roboflow free tier). GPU 4 GB: `imgsz=640`, `batch=8`, AMP.
-- [ ] Nối vào `scoring.fuse()` bằng weight mới trong config
 - [ ] Chạy `beatcut analyze` trên 10 VOD đã label, so precision@5 **trước/sau**
 
 **Xong khi:** bảng "baseline vs M2" có số thật trong README.
@@ -43,8 +45,9 @@ Mục tiêu: vượt baseline motion+audio, và **chứng minh** là vượt.
 **Học được:** labeling protocol, dataset versioning (DVC), fine-tune YOLO, và
 quan trọng nhất — cách đo để biết thay đổi của mình có tốt lên hay không.
 
-**Cảnh báo:** đừng nhảy thẳng vào YOLO. Killfeed OCR thường cho tín hiệu chính
-xác hơn "có enemy trong frame" rất nhiều, và nó không cần GPU.
+**Cảnh báo:** đừng nhảy thẳng vào YOLO. Đọc bộ đếm hạ gục cho tín hiệu chính xác
+hơn "có enemy trong frame" rất nhiều, và nó không cần GPU. Một lưu ý nữa: OCR
+trên chữ toàn màn hình đọc cả icon thành chữ cái, nên phải crop thật hẹp.
 
 ---
 

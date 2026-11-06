@@ -163,6 +163,30 @@ def cmd_score(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_kills(args: argparse.Namespace) -> int:
+    from .scoreboard import extract_kills
+
+    parts = [part.strip() for part in args.box.split(",")]
+    if len(parts) != 4:
+        print("error: --box wants x,y,width,height", file=sys.stderr)
+        return 2
+    box = tuple(int(value) for value in parts)
+
+    events = extract_kills(args.video, box, args.fps, dump_samples=args.samples)
+    print(f"read the kill counter {box} at {args.fps}/s -> {len(events)} kills\n")
+    for event in events:
+        print(f"  {event.time:8.2f}s  kill #{event.count}")
+
+    if args.json:
+        Path(args.json).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.json).write_text(
+            json.dumps({"box": list(box), "events": [e.to_dict() for e in events]}, indent=2),
+            encoding="utf-8",
+        )
+        print(f"\nwrote {args.json}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="beatcut",
@@ -203,6 +227,15 @@ def build_parser() -> argparse.ArgumentParser:
                          help="fraction of a clip that must overlap a label")
     p_score.add_argument("--json", help="write the metrics to this path")
     p_score.set_defaults(func=cmd_score)
+
+    p_kills = sub.add_parser("kills", help="read the in-game kill counter with OCR")
+    p_kills.add_argument("video")
+    p_kills.add_argument("--box", required=True,
+                         help="x,y,width,height of the kill digit, in displayed pixels")
+    p_kills.add_argument("--fps", type=float, default=2.0, help="counter samples per second")
+    p_kills.add_argument("--json", help="write the events to this path")
+    p_kills.add_argument("--samples", help="dump every raw reading, for tuning")
+    p_kills.set_defaults(func=cmd_kills)
 
     return parser
 
