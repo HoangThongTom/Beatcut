@@ -4,6 +4,8 @@
 
 [![CI](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml/badge.svg)](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml)
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://beatcut-hb8jo3fdd5dsrvthptc2qf.streamlit.app/)
+
 Turn an hour-long gameplay VOD into a short montage that cuts on the beat of a song.
 
 `BeatCut` scores every second of a recording for "how much is happening here",

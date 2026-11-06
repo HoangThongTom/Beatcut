@@ -1,5 +1,7 @@
 # Deploying the demo
 
+**Live app:** <https://beatcut-hb8jo3fdd5dsrvthptc2qf.streamlit.app/>
+
 ## Streamlit Community Cloud (free, no card) — the current target
 
 Hugging Face now offers free accounts **ZeroGPU only** when creating a Space:

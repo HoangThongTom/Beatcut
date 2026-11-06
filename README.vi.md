@@ -4,6 +4,8 @@
 
 [![CI](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml/badge.svg)](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml)
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://beatcut-hb8jo3fdd5dsrvthptc2qf.streamlit.app/)
+
 Biến một VOD chơi game dài cả tiếng thành đoạn montage ngắn cắt đúng nhịp nhạc.
 
 `BeatCut` chấm điểm từng giây của bản ghi theo câu hỏi "chỗ này đang có bao nhiêu
