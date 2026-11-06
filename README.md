@@ -10,8 +10,10 @@ downbeats of a music track. No manual scrubbing, no editing timeline.
 > audio energy. A learned highlight detector (YOLO / OCR killfeed) lands in M2.
 > See [ROADMAP.md](ROADMAP.md).
 
-<!-- Replace with a real 20-30s before/after GIF once M1 is recorded. -->
-<!-- ![demo](docs/assets/demo.gif) -->
+![BeatCut cutting a 10-minute mobile VOD into a beat-synced montage](docs/assets/demo.gif)
+
+*Ten seconds of an automatically generated montage: eight clips, each exactly
+three bars long, picked from a 10-minute phone recording.*
 
 ## The problem
 
