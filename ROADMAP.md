@@ -1,118 +1,133 @@
-# Lộ trình BeatCut — 8 tuần, 10–20 h/tuần
+# BeatCut roadmap — 8 weeks, 10–20 h/week
 
-Nguyên tắc duy nhất: **mỗi mốc phải là một sản phẩm chạy được**. Nếu hết thời
-gian ở M2, bạn vẫn có một project hoàn chỉnh để đưa vào CV, không phải một đống
-code dở dang.
+**English** | [Tiếng Việt](ROADMAP.vi.md)
 
-Mốc hiện tại: **M1 đã có code**, bạn chỉ cần chạy nó với footage thật.
+One rule: **every milestone must be a working product**. If time runs out at M2,
+you still have a finished project to put on a CV, not a pile of half-written code.
 
----
-
-## M1 — Vertical slice, không dùng model (tuần 1–2)
-
-Mục tiêu: từ 1 VOD ra 1 file montage, cắt đúng beat, không cần train gì.
-
-- [x] Khung repo, pipeline, CLI, unit tests
-- [ ] Cài ffmpeg (`winget install Gyan.FFmpeg`) và `.\scripts\bootstrap.ps1`
-- [ ] Quay 2–3 VOD của chính bạn, 1080p60, 20–60 phút, đặt vào `data/raw/`
-- [ ] Chạy `beatcut run`, xem output, chỉnh `configs/default.yaml` cho hợp gu
-- [ ] Quay GIF before/after 15–20 giây, chèn vào đầu README
-- [ ] `git init`, commit, push lên GitHub (public)
-
-**Xong khi:** README có GIF, một người lạ clone về chạy được theo đúng 4 lệnh
-trong Quickstart.
-
-**Học được:** ffmpeg (seek, re-encode, concat demuxer, vì sao `-c copy` cắt lệch
-beat), librosa beat tracking, xử lý video dài mà không hết RAM.
+Where things stand: **M1 done, M2 half done** — the pipeline runs on real VODs,
+has a kill detector, and the ablation is measured.
 
 ---
 
-## M2 — Scorer có học (tuần 3–4)
+## M1 — vertical slice, no models (weeks 1–2)
 
-Mục tiêu: vượt baseline motion+audio, và **chứng minh** là vượt.
+Goal: one VOD in, one montage out, cut on the beat, no training involved.
 
-- [x] Scorer `killcounter`: crop ô đếm hạ gục ở HUD, OCR lấy số, phát hiện lúc số
-      tăng → kill event. Đã có lệnh `beatcut kills`. Đây là hướng rẻ nhất — không
-      cần train, không cần GPU.
-- [ ] Nối kill event vào `scoring.fuse()` dưới dạng một curve cộng thêm, với
-      weight trong config
-- [ ] Thêm scorer `enemy`: fine-tune YOLOv8n trên 800–1200 frame tự label (CVAT
-      hoặc Roboflow free tier). GPU 4 GB: `imgsz=640`, `batch=8`, AMP.
-- [ ] Chạy `beatcut analyze` trên 10 VOD đã label, so precision@5 **trước/sau**
+- [x] Repo skeleton, pipeline, CLI, unit tests
+- [x] Install ffmpeg and run `.\scripts\bootstrap.ps1`
+- [x] Record your own VOD and drop it in `data/raw/`
+- [x] Run `beatcut run`, watch the output, tune `configs/default.yaml`
+- [x] Record a before/after GIF and put it at the top of the README
+- [x] `git init`, commit, push a public GitHub repo
 
-**Xong khi:** bảng "baseline vs M2" có số thật trong README.
+**Done when:** the README has a GIF and a stranger can clone and run it by
+following the Quickstart commands.
 
-**Học được:** labeling protocol, dataset versioning (DVC), fine-tune YOLO, và
-quan trọng nhất — cách đo để biết thay đổi của mình có tốt lên hay không.
-
-**Cảnh báo:** đừng nhảy thẳng vào YOLO. Đọc bộ đếm hạ gục cho tín hiệu chính xác
-hơn "có enemy trong frame" rất nhiều, và nó không cần GPU. Một lưu ý nữa: OCR
-trên chữ toàn màn hình đọc cả icon thành chữ cái, nên phải crop thật hẹp.
+**What you learn:** ffmpeg (seeking, re-encoding, the concat demuxer, why
+`-c copy` cuts off the beat), librosa beat tracking, and processing long video
+without running out of memory.
 
 ---
 
-## M3 — Đóng gói (tuần 5–6)
+## M2 — in-game signals (weeks 3–4)
 
-- [ ] Export ONNX, benchmark `onnxruntime` so với PyTorch (FPS, ms/frame)
-- [ ] `docker build` + `docker run` chạy được `app/api.py`
-- [ ] GitHub Actions: `ruff check` + `pytest` trên mỗi push
-- [ ] Deploy demo lên Hugging Face Spaces (dùng bản M1 nếu M2 chưa xong)
-- [ ] `.env` + giới hạn dung lượng upload
+Goal: beat the motion+audio baseline, and **prove** it.
 
-**Xong khi:** có link demo bấm được, và CI xanh.
+- [x] `killcounter` scorer: crop the kill counter in the HUD, OCR the digit,
+      treat a rising number as a kill event. Shipped as `beatcut kills`.
+- [x] Feed kill events into the score as a bump around each one, weighted from
+      config
+- [x] Measure the ablation: 2/8 → 8/8 clips containing a kill
+- [ ] `enemy` scorer: fine-tune YOLOv8n on 800–1200 self-labelled frames (CVAT or
+      Roboflow free tier). On 4 GB: `imgsz=640`, `batch=8`, AMP.
+- [ ] Run `beatcut analyze` over several labelled VODs and compare precision@5
+      before and after
 
-**Học được:** Docker, CI, ONNX, deployment — đây là phần phân biệt "sinh viên
-train model trên Colab" với "người làm được việc".
+**Done when:** a "baseline vs M2" table with real numbers sits in the README.
+
+**What you learn:** labelling protocol, dataset versioning (DVC), fine-tuning
+YOLO, and most importantly how to measure whether your change actually helped.
+
+**Warning:** do not jump straight to YOLO. Reading the kill counter gives a far
+more precise signal than "an enemy is on screen", and it needs no GPU. Another
+lesson learned the hard way: OCR over a wide area reads icons as letters, so the
+crop has to be tight.
 
 ---
 
-## M4 — Kể chuyện (tuần 7–8)
+## M3 — packaging (weeks 5–6)
 
-- [ ] Chạy đủ [eval protocol](docs/eval-protocol.md) trên 10 VOD, tách dev/test
-- [ ] Error analysis: 10 false positive, mỗi cái một câu giải thích
-- [ ] Blog post 800–1200 từ: bài toán, cách làm, số liệu, cái gì fail
-- [ ] Video demo 60 giây (không cần đẹp, cần rõ)
-- [ ] Dọn repo: xoá code chết, README cuối, tag `v1.0`
+- [ ] `docker build` + `docker run` serving `app/api.py` (the Dockerfile exists
+      but has never been tested)
+- [ ] GitHub Actions: `ruff check` + `pytest` on every push
+- [ ] Cap upload duration — the current API is synchronous and a 1 GB video will
+      time out
+- [ ] Deploy a demo to Hugging Face Spaces (Docker SDK)
+- [ ] Export ONNX and benchmark `onnxruntime` against PyTorch (FPS, ms/frame)
 
-**Xong khi:** người phỏng vấn đọc README 2 phút là hiểu bạn làm gì và đo thế nào.
+**Done when:** there is a demo link you can click, and CI is green.
+
+**What you learn:** Docker, CI, ONNX, deployment — the part that separates
+"student who trained a model on Colab" from "someone who can ship".
 
 ---
 
-## Phần cứng của bạn (RTX 2050, 4 GB)
+## M4 — telling the story (weeks 7–8)
 
-Đây là lý do các con số dưới đây quan trọng hơn "model to":
+- [ ] Run the full [eval protocol](docs/eval-protocol.md) over 10 VODs, split
+      dev/test
+- [ ] Error analysis: ten false positives, one sentence of explanation each
+- [ ] Blog post of 800–1200 words: the problem, the approach, the numbers, what
+      failed
+- [ ] 60-second demo video (does not need to be pretty, needs to be clear)
+- [ ] Clean up: delete dead code, final README, tag `v1.0`
 
-| Việc | Cách làm trên 4 GB |
+**Done when:** an interviewer reads the README for two minutes and understands
+what you built and how you measured it.
+
+---
+
+## Your hardware (RTX 2050, 4 GB)
+
+This is why the numbers below matter more than "a big model":
+
+| Task | How to do it on 4 GB |
 |---|---|
 | Fine-tune YOLOv8n | `imgsz=640`, `batch=8`, AMP (`amp=True`) |
-| Fine-tune YOLOv8s | `imgsz=512`, `batch=4`, hoặc Colab free |
-| Train lâu hơn 1 giờ | Colab/Kaggle, lưu checkpoint lên Drive |
-| Benchmark FPS | chạy local, ghi rõ GPU trong README |
+| Fine-tune YOLOv8s | `imgsz=512`, `batch=4`, or free Colab |
+| Train longer than an hour | Colab/Kaggle, keep checkpoints on Drive |
+| Benchmark FPS | run locally, state the GPU in the README |
 
 ---
 
-## Những câu sẽ bị hỏi khi phỏng vấn
+## Questions you will be asked in interviews
 
-Chuẩn bị sẵn câu trả lời cho 6 câu này — chúng gần như chắc chắn xuất hiện:
+Prepare answers to these six — they come up almost every time:
 
-1. Vì sao cắt bằng re-encode mà không `-c copy`? (→ độ chính xác frame vs tốc độ)
-2. Vì sao chọn motion + audio thay vì học từ đầu? (→ baseline trước, model sau)
-3. Precision@5 của bạn đo thế nào, ground truth do ai label? (→ protocol)
-4. Nếu video 3 tiếng thì pipeline có chết không? (→ streaming, memory)
-5. Downbeat bạn xác định bằng gì, sai thì sao? (→ heuristic phase, thừa nhận)
-6. Cái gì **không** hoạt động? (→ error analysis, đây là câu ăn điểm nhất)
+1. Why re-encode instead of `-c copy`? (→ frame accuracy versus speed)
+2. Why motion + audio instead of learning from scratch? (→ baseline first, model
+   second)
+3. How did you measure precision@5, and who labelled the ground truth? (→
+   protocol)
+4. Would a three-hour video kill the pipeline? (→ streaming, memory)
+5. How do you determine downbeats, and what happens when you get it wrong? (→
+   phase heuristic, admit it)
+6. What does **not** work? (→ error analysis; this is the question that earns the
+   most points)
 
 ---
 
-## Dấu hiệu project bị đánh giá là "copy tutorial"
+## Signs a project will be read as "copied from a tutorial"
 
-Tránh 5 điều này:
+Avoid these five:
 
-- Dataset là thứ có sẵn (`coco128`, `cifar10`) và không có gì của bạn
-- Không có số đo, chỉ có ảnh chụp màn hình kết quả
-- README không nói gì về cái gì fail
-- Commit history là một commit duy nhất "initial commit"
-- Không có demo chạy được, chỉ có notebook
+- The dataset is something off the shelf (`coco128`, `cifar10`) with nothing of
+  yours in it
+- No measurements, only screenshots of results
+- The README never mentions what failed
+- The commit history is a single "initial commit"
+- No runnable demo, only a notebook
 
-Ngược lại, 5 thứ ghi điểm: data tự thu, ablation có số, error analysis, CI xanh,
-demo link.
+The opposite five earn points: self-collected data, an ablation with numbers, an
+error analysis, green CI, and a demo link.

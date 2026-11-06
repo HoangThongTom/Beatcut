@@ -1,5 +1,7 @@
 # BeatCut
 
+**English** | [Tiếng Việt](README.vi.md)
+
 Turn an hour-long gameplay VOD into a short montage that cuts on the beat of a song.
 
 `BeatCut` scores every second of a recording for "how much is happening here",

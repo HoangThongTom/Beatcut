@@ -1,5 +1,7 @@
 # Evaluation protocol
 
+**English** | [Tiếng Việt](eval-protocol.vi.md)
+
 Unit tests prove the code does what it claims. They say nothing about whether
 the *selected clips are good*. This document defines how to measure that, so the
 number in the README means something.
