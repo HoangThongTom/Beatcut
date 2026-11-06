@@ -1,59 +1,54 @@
-# Deploying to Hugging Face Spaces
+# Deploying the demo
 
-Hugging Face put **Docker Spaces behind a paywall** (credits or PRO). The free
-route is the **Gradio SDK**, which is what this repository is set up for:
-`app/ui.py` is a small form over the pipeline, and `requirements.txt` plus
-`packages.txt` tell the Space how to install it.
+## Streamlit Community Cloud (free, no card) — the current target
 
-The `Dockerfile` is still useful locally (`docker build` / `docker run`), it is
-just not the deployment target any more.
+Hugging Face now offers free accounts **ZeroGPU only** when creating a Space:
+CPU Basic is greyed out. ZeroGPU refuses to start an app that has no
+`@spaces.GPU` function, and this pipeline is pure CPU, so buying GPU quota to run
+it would be both wasteful and misleading.
 
-## One-time setup on huggingface.co
+Streamlit Community Cloud runs the app straight from the public GitHub repo.
 
-1. Create an account.
-2. **Settings → Access Tokens → New token**, role **Write**. Copy it — it is shown
-   once.
-3. **New Space**:
-   - name: `beatcut`
-   - SDK: **Gradio**
-   - hardware: **CPU basic (free)**
-   - visibility: **Public**
-4. In the new Space: **Settings → Variables and secrets**, add
-   `BEATCUT_MAX_DURATION_S = 60`.
-   Rendering is synchronous; the default of 180 s is longer than the proxy in
-   front of Spaces will hold a request.
+1. Push the repository to GitHub (it must be public).
+2. Sign in at <https://share.streamlit.io> with GitHub.
+3. **New app** → repository `HoangThongTom/beatcut` → branch `main` → main file
+   path `app/streamlit_app.py` → **Deploy**.
+4. First boot installs `requirements.txt` and apt-installs the packages in
+   `packages.txt` (ffmpeg). It takes a few minutes.
 
-## Publish
+Set `BEATCUT_MAX_DURATION_S` in the app's **Settings → Secrets** if 60 seconds is
+not what you want:
 
-Spaces requires its app card at the root `README.md`, which would overwrite the
-project README, so the Space is published from a throwaway branch. Run from the
-repository root; `<user>` is your Hugging Face username.
-
-```powershell
-git checkout -b hf-space
-Copy-Item deploy\space-README.md README.md -Force
-git commit -am "Space app card"
-git push --force https://huggingface.co/spaces/<user>/beatcut hf-space:main
-git checkout main
-git branch -D hf-space
+```toml
+BEATCUT_MAX_DURATION_S = "60"
 ```
 
-When git asks for credentials, the username is your Hugging Face username and the
-password is the **token**, not your account password.
+## Hugging Face Spaces (blocked for free accounts)
 
-`--force` is there on purpose: a new Space is initialised with its own placeholder
-README commit, so a normal push is rejected as non-fast-forward.
+The Space configuration is kept for anyone with PRO:
+[`space-README.md`](space-README.md) is the app card, and `app/ui.py` is the
+Gradio entry point.
 
-## Verifying the Space
+Publish it from a throwaway branch, since Spaces requires its app card at the
+repository root and that would overwrite the project README:
 
-The Space installs `requirements.txt`, runs `packages.txt` (which apt-installs
-ffmpeg), then launches `app/ui.py`. First boot takes a few minutes.
+```powershell
+git checkout -b hf
+Copy-Item deploy\space-README.md README.md -Force
+git add -A
+git rm --cached docs/assets/demo.gif
+git commit -m "Space snapshot"
+git push --force "https://<user>:<token>@huggingface.co/spaces/<user>/beatcut" "hf:main"
+git checkout main
+```
 
-If the build fails, the **Logs** tab shows the pip and apt output. The usual
-culprits are the editable install (`-e .`) and the Python version, which is pinned
-to 3.11 in the app card because `numba` has no wheels for 3.13+.
+Two things that bite:
 
-## Updating it later
+- the Hub rejects **binary files** over git, hence removing the GIF from the
+  branch (it is only ever an orphan snapshot, so the blob is not in history)
+- a new Space starts with a placeholder README, so the push needs `--force`
 
-Re-run the publish block after any change to `src/`, `app/` or the pipeline
-config. The branch is recreated each time, so nothing lingers.
+## Docker
+
+The `Dockerfile` still builds a working API (`app/api.py`) and is verified
+locally; it is not a free deployment target any more.

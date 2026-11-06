@@ -158,7 +158,8 @@ Con số trung thực cần điền tiếp theo là precision@5 so với nhãn d
 
 ```
 src/beatcut/     thư viện pipeline (import được, không tác dụng phụ từ CLI)
-app/ui.py        demo Gradio (đích deploy miễn phí)
+app/streamlit_app.py  demo Streamlit (đích deploy miễn phí)
+app/ui.py        demo Gradio (giữ cho Hugging Face Spaces nếu có PRO)
 app/api.py       wrapper FastAPI tối giản (M3)
 configs/         config YAML
 scripts/         bootstrap.ps1

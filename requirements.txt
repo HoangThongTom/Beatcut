@@ -1,10 +1,10 @@
-# Hugging Face installs this before launching the Gradio app.
+# Installed by the hosted runner before the app starts.
 #
-# There is deliberately no editable install here: pip resolves `-e .` relative to
-# its working directory, which is not the repository root during a Space build.
-# app/ui.py puts src/ on sys.path instead.
+# There is deliberately no editable install and no OCR engine here: pip resolves
+# `-e .` relative to its own working directory, which is not the repository root
+# on a hosted runner, and the demo never touches the kill-counter OCR. Kill
+# detection needs `pip install -e ".[ocr]"` locally.
 numpy>=1.26,<3
 librosa>=0.10.1
 soundfile>=0.12
 pyyaml>=6.0
-rapidocr-onnxruntime>=1.4
