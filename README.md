@@ -6,9 +6,10 @@ Turn an hour-long gameplay VOD into a short montage that cuts on the beat of a s
 picks the strongest moments, and cuts them into a highlight reel aligned to the
 downbeats of a music track. No manual scrubbing, no editing timeline.
 
-> **Status: M1 (model-free vertical slice).** Scoring is currently motion +
-> audio energy. A learned highlight detector (YOLO / OCR killfeed) lands in M2.
-> See [ROADMAP.md](ROADMAP.md).
+> **Status: working end to end.** Highlights come from motion energy, audio
+> energy, and a kill counter read with OCR; clip lengths are quantised to whole
+> bars so every cut lands on the beat. A learned detector (YOLO) is the next
+> step. See [ROADMAP.md](ROADMAP.md).
 
 ![BeatCut cutting a 10-minute mobile VOD into a beat-synced montage](docs/assets/demo.gif)
 
@@ -123,14 +124,34 @@ The two that matter most:
 
 ## Results
 
-Fill this in with numbers from **your** runs — never invent them.
+Measured on one 11-minute phone recording (2532x1170, 60fps, HEVC), a 129 BPM
+track, on an RTX 2050 laptop. Numbers are from real runs; the commands to
+reproduce each are next to them.
 
-| Metric | Target | Measured |
+| Metric | Measured | How |
 |---|---|---|
-| Highlight selection precision@5 (see [eval protocol](docs/eval-protocol.md)) | ≥ 0.70 | _TBD_ |
-| Beat alignment error (mean, ms) | ≤ 50 | _TBD_ |
-| End-to-end time, 60 min VOD → 45 s montage | < 10 min | _TBD_ |
-| Peak memory | < 2 GB | _TBD_ |
+| Clips containing a kill | **8/8** with the kill boost, **2/8** without | `beatcut run` with `kill_crop` on and off, same VOD and config |
+| Kills found in an 11-min VOD | 11 | `beatcut kills` |
+| Cut alignment to the bar grid | **≤ 15.4 ms** (half a frame at 60fps) | clip lengths are whole bars, rounded on the cumulative position |
+| Kill counter OCR cost | **11 ms/frame** | text detection disabled, 62x52 crop at 3x |
+| Analysis, first run / cached | **207 s / 2 s** | `beatcut analyze`, motion curve cached |
+| Full render, first run / cached | **297 s / 57 s** | `beatcut run` |
+| Highlight selection precision@5 | _not measured yet_ | needs hand-labelled VODs, see [eval protocol](docs/eval-protocol.md) |
+
+### What the ablation does and does not show
+
+Turning the kill boost on took clips that contain a kill from 2/8 to 8/8, and
+every chosen window now sits within 1.5s of one. That is evidence the kill
+detector works, **not** evidence the montage is good:
+
+- "contains a kill" is not "worth watching" — a clip can contain the kill and
+  still be the boring six seconds after it
+- one VOD and eight clips is not a sample
+- there is no independent ground truth yet, so this is a sanity metric rather
+  than a quality metric
+
+The honest number to fill in next is precision@5 against labelled highlights.
+
 
 ## Project layout
 
