@@ -2,6 +2,8 @@
 
 **English** | [Tiếng Việt](README.vi.md)
 
+[![CI](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml/badge.svg)](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml)
+
 Turn an hour-long gameplay VOD into a short montage that cuts on the beat of a song.
 
 `BeatCut` scores every second of a recording for "how much is happening here",

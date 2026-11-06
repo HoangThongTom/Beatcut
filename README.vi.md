@@ -2,6 +2,8 @@
 
 [English](README.md) | **Tiếng Việt**
 
+[![CI](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml/badge.svg)](https://github.com/HoangThongTom/beatcut/actions/workflows/ci.yml)
+
 Biến một VOD chơi game dài cả tiếng thành đoạn montage ngắn cắt đúng nhịp nhạc.
 
 `BeatCut` chấm điểm từng giây của bản ghi theo câu hỏi "chỗ này đang có bao nhiêu

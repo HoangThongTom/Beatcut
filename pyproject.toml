@@ -20,6 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 cv = ["opencv-python-headless>=4.9", "ultralytics>=8.2"]
+ocr = ["rapidocr-onnxruntime>=1.4"]
 app = [
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",
