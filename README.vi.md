@@ -22,6 +22,10 @@ khớp với phách của một bản nhạc. Không phải tua tay, không ph�
 *Mười giây của một montage được tạo tự động: tám clip, mỗi clip đúng ba ô nhịp,
 chọn ra từ một bản ghi màn hình điện thoại dài 10 phút.*
 
+[Xem montage đầy đủ 44 giây có âm thanh](https://beatcut-hb8jo3fdd5dsrvthptc2qf.streamlit.app/)
+— tám highlight từ bản ghi gameplay 11 phút, được chọn với bộ đếm kill OCR.
+Bạn cũng có thể tải [video demo MP4](docs/assets/montage-demo.mp4) trong repo.
+
 ## Vấn đề
 
 Dựng montage highlight bằng tay nghĩa là xem hàng giờ footage, nhớ timestamp, rồi

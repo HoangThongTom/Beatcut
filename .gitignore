@@ -27,6 +27,7 @@ data/labels/*
 outputs/*
 !outputs/.gitkeep
 *.mp4
+!docs/assets/montage-demo.mp4
 *.mkv
 *.mov
 *.wav

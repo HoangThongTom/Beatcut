@@ -36,6 +36,15 @@ st.markdown(
     "to a whole number of musical bars. No model, no GPU, no training."
 )
 
+demo_video = Path(__file__).resolve().parent.parent / "docs" / "assets" / "montage-demo.mp4"
+if demo_video.is_file():
+    st.subheader("Sample montage")
+    st.video(str(demo_video))
+    st.caption(
+        "44-second montage from an 11-minute gameplay recording: "
+        "8 highlights selected with motion, audio, and kill-counter OCR, cut to the beat."
+    )
+
 with st.expander("How it works"):
     st.markdown(
         "1. decode the video at 4 fps and measure motion energy\n"

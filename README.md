@@ -22,6 +22,10 @@ downbeats of a music track. No manual scrubbing, no editing timeline.
 *Ten seconds of an automatically generated montage: eight clips, each exactly
 three bars long, picked from a 10-minute phone recording.*
 
+[Watch the full 44-second montage with sound](https://beatcut-hb8jo3fdd5dsrvthptc2qf.streamlit.app/)
+— eight highlights from an 11-minute gameplay recording, selected with kill-counter OCR.
+The [MP4 demo](docs/assets/montage-demo.mp4) is also included in this repository.
+
 ## The problem
 
 Editing a highlight montage by hand means watching hours of footage, remembering
