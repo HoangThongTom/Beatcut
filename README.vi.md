@@ -26,6 +26,10 @@ chọn ra từ một bản ghi màn hình điện thoại dài 10 phút.*
 — tám highlight từ bản ghi gameplay 11 phút, được chọn với bộ đếm kill OCR.
 Bạn cũng có thể tải [video demo MP4](docs/assets/montage-demo.mp4) trong repo.
 
+Trên web demo, tải gameplay và nhạc lên, chọn độ dài montage và mốc bắt đầu nhạc
+theo giây, rồi nghe thử trước khi tạo video. Ví dụ, nhập 25 để dùng nhạc từ 0:25.
+Thời lượng thực tế có thể chênh nhẹ để độ dài clip khớp ô nhịp.
+
 ## Vấn đề
 
 Dựng montage highlight bằng tay nghĩa là xem hàng giờ footage, nhớ timestamp, rồi

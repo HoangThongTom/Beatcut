@@ -26,6 +26,10 @@ three bars long, picked from a 10-minute phone recording.*
 — eight highlights from an 11-minute gameplay recording, selected with kill-counter OCR.
 The [MP4 demo](docs/assets/montage-demo.mp4) is also included in this repository.
 
+In the web demo, upload gameplay and music, set the montage duration and music
+start in seconds, then preview the music before rendering. For example, 25 starts
+the music at 0:25. Final duration can vary to keep clips on musical bars.
+
 ## The problem
 
 Editing a highlight montage by hand means watching hours of footage, remembering

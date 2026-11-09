@@ -10,6 +10,7 @@ Run locally with:  streamlit run app/streamlit_app.py
 
 from __future__ import annotations
 
+import math
 import os
 import sys
 import tempfile
@@ -22,7 +23,8 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
 
 import streamlit as st  # noqa: E402
 
-from beatcut.media import probe  # noqa: E402
+from beatcut.config import Config  # noqa: E402
+from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
 
 MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "60"))
@@ -63,6 +65,29 @@ st.caption(
 video_file = st.file_uploader("Gameplay clip", type=["mp4", "mov", "mkv", "webm"])
 music_file = st.file_uploader("Music track", type=["mp3", "wav", "m4a", "ogg", "flac"])
 
+st.subheader("Montage settings")
+target_duration = st.number_input(
+    "Montage duration (seconds)", min_value=5, max_value=600, value=45, step=5,
+    help="Approximate length. Cuts follow musical bars, so the final length can vary.",
+)
+music_start = st.number_input(
+    "Start music at (seconds)", min_value=0, value=0, step=1,
+    help="For example, enter 25 to start at 0:25. This exact offset is used in the montage.",
+)
+st.caption(
+    f"Requested montage: {target_duration}s · Music starts at "
+    f"{music_start // 60}:{music_start % 60:02d}. "
+    "Longer montages need enough source footage; the available highlights may be shorter."
+)
+if music_file is not None:
+    st.markdown("**Preview music from the selected start**")
+    st.audio(
+        music_file.getvalue(),
+        format=music_file.type or "audio/mpeg",
+        start_time=music_start,
+    )
+    st.caption("Press play to listen. Changing the start above also updates the preview.")
+
 if st.button("Render montage", type="primary", use_container_width=True):
     if not video_file or not music_file:
         st.error("Upload both a clip and a music track.")
@@ -75,8 +100,9 @@ if st.button("Render montage", type="primary", use_container_width=True):
 
         try:
             info = probe(video_path)
+            music_duration = audio_duration(music_path)
         except Exception as exc:  # noqa: BLE001 - shown to the user
-            st.error(f"Cannot read that video: {exc}")
+            st.error(f"Cannot read the uploaded video or music: {exc}")
             st.stop()
 
         if info.duration_s > MAX_DURATION_S:
@@ -86,20 +112,47 @@ if st.button("Render montage", type="primary", use_container_width=True):
             )
             st.stop()
 
+        if music_start >= music_duration:
+            st.error("Choose a music start before the end of a track containing audio.")
+            st.stop()
+        if target_duration > info.duration_s:
+            st.error("The montage duration must not exceed the uploaded gameplay duration.")
+            st.stop()
+        if target_duration > music_duration - music_start:
+            st.error(
+                "Not enough music after this start. Choose an earlier start or shorter montage."
+            )
+            st.stop()
+
+        cfg = Config(
+            target_duration_s=float(target_duration),
+            music_start_s=float(music_start),
+            max_segments=max(10, math.ceil(target_duration / 2.5)),
+        )
         with st.spinner(f"Rendering {info.duration_s:.0f}s of footage…"):
             output = job / "montage.mp4"
             try:
-                run(video_path, music_path, output)
+                manifest = run(video_path, music_path, output, cfg)
             except Exception as exc:  # noqa: BLE001 - shown to the user
                 st.error(f"Render failed: {exc}")
                 st.stop()
 
-        st.success("Done.")
-        st.video(str(output))
-        st.download_button(
-            "Download the montage",
-            data=output.read_bytes(),
-            file_name="montage.mp4",
-            mime="video/mp4",
-            use_container_width=True,
-        )
+        st.session_state["last_montage"] = {
+            "data": output.read_bytes(),
+            "duration": manifest["analysis"]["total_duration_s"],
+            "music_start": music_start,
+            "music_name": music_file.name,
+        }
+
+if "last_montage" in st.session_state:
+    result = st.session_state["last_montage"]
+    st.success(f"Latest montage: {result['duration']:.1f}s")
+    st.caption(f"Music: {result['music_name']} · Starts at {result['music_start']} seconds")
+    st.video(result["data"])
+    st.download_button(
+        "Download the montage",
+        data=result["data"],
+        file_name="montage.mp4",
+        mime="video/mp4",
+        use_container_width=True,
+    )

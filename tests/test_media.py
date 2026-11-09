@@ -3,9 +3,42 @@ without ffmpeg installed."""
 
 from __future__ import annotations
 
-import numpy as np
+import json
+from types import SimpleNamespace
 
-from beatcut.media import _display_size, find_gaps
+import numpy as np
+import pytest
+
+from beatcut.media import _display_size, audio_duration, find_gaps
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        ({"format": {"duration": "193.5"}, "streams": [{}]}, 193.5),
+        ({"streams": [{"duration": "40"}]}, 40.0),
+    ],
+)
+def test_audio_duration_accepts_audio_only_files(monkeypatch, payload, expected):
+    monkeypatch.setattr(
+        "beatcut.media.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(stdout=json.dumps(payload)),
+    )
+    assert audio_duration("song.mp3") == expected
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [{"format": {"duration": "40"}, "streams": []},
+     {"streams": [{}]}, {"streams": [{"duration": "nan"}]}],
+)
+def test_audio_duration_rejects_unusable_music(monkeypatch, payload):
+    monkeypatch.setattr(
+        "beatcut.media.subprocess.run",
+        lambda *args, **kwargs: SimpleNamespace(stdout=json.dumps(payload)),
+    )
+    with pytest.raises(ValueError):
+        audio_duration("bad.mp3")
 
 
 def test_find_gaps_ignores_uniform_frame_spacing():

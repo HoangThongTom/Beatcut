@@ -8,6 +8,7 @@ of decoding with OpenCV, which keeps memory flat on hour-long VODs.
 from __future__ import annotations
 
 import json
+import math
 import os
 import subprocess
 from collections.abc import Iterator
@@ -88,6 +89,23 @@ def probe(path: str | Path) -> VideoInfo:
         fps=_parse_rate(video.get("avg_frame_rate") or video.get("r_frame_rate") or "0"),
         has_audio=any(s.get("codec_type") == "audio" for s in streams),
     )
+
+
+def audio_duration(path: str | Path) -> float:
+    """Read a music track's duration without decoding the full file."""
+    completed = subprocess.run(
+        [FFPROBE, "-v", "error", "-select_streams", "a:0", "-show_entries",
+         "format=duration:stream=duration,codec_type", "-of", "json", str(path)],
+        check=True, capture_output=True, text=True,
+    )
+    data = json.loads(completed.stdout or "{}")
+    streams = data.get("streams", [])
+    if not streams:
+        raise ValueError(f"no audio stream found in {path}")
+    duration = float(data.get("format", {}).get("duration") or streams[0].get("duration") or 0)
+    if not math.isfinite(duration) or duration <= 0:
+        raise ValueError(f"cannot determine music duration: {path}")
+    return duration
 
 
 def find_gaps(
