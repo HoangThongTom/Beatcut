@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import importlib
 import math
 import os
 import sys
@@ -25,6 +26,13 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
 
 import streamlit as st  # noqa: E402
 import streamlit.components.v1 as components  # noqa: E402
+
+from beatcut import editing  # noqa: E402
+
+# Cloud can rerun this entry point before refreshing an already-imported source module.
+if not hasattr(editing, "reorder_rows"):
+    importlib.invalidate_caches()
+    importlib.reload(editing)
 
 from beatcut.config import Config  # noqa: E402
 from beatcut.editing import reorder_rows, rows_to_segments  # noqa: E402
