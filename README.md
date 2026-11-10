@@ -32,6 +32,12 @@ the music at 0:25. Final duration can vary to keep clips on musical bars.
 During rendering, the demo shows the current stage, reused analysis, and the
 number of highlight clips completed.
 
+After rendering, the **Make it yours** editor lets you preview the source gameplay,
+trim or extend clips by timestamp, remove clips, and change their order. Click
+**Apply edits**, then **Export edited MP4**. **Undo edit** restores the previous
+applied selection. Manual cuts keep your exact timestamps rather than snapping to
+beats. Edits are kept in the current session; reopening the page starts a new session.
+
 ## The problem
 
 Editing a highlight montage by hand means watching hours of footage, remembering

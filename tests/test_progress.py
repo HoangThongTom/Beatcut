@@ -34,3 +34,20 @@ def test_progress_counts_only_completed_clips(tmp_path, monkeypatch, fail):
             "Rendering highlights: 2/2 completed.",
         ]
         assert messages[-1] == "Montage ready."
+
+
+def test_manual_export_skips_analysis_and_preserves_clip_order(tmp_path, monkeypatch):
+    monkeypatch.setattr("beatcut.pipeline.probe", lambda path: VideoInfo(
+        str(path), 40, 1280, 720, 30, False,
+    ))
+    analyze = Mock(side_effect=AssertionError("Manual export must not select highlights again"))
+    monkeypatch.setattr("beatcut.pipeline.analyze", analyze)
+    cut = Mock(side_effect=lambda video, segment, out, *args, **kwargs: out)
+    monkeypatch.setattr("beatcut.pipeline.cut", cut)
+    monkeypatch.setattr("beatcut.pipeline.concat", lambda parts, out: out)
+    monkeypatch.setattr("beatcut.pipeline.mux_music", lambda *args: None)
+    result = run("video", "music", tmp_path / "manual.mp4",
+                 segments=[Segment(20, 22), Segment(1, 4)])
+    assert [(c.args[1].start, c.args[1].end) for c in cut.call_args_list] == [(20, 22), (1, 4)]
+    assert result["analysis"]["total_duration_s"] == 5
+    analyze.assert_not_called()

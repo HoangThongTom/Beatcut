@@ -15,6 +15,7 @@ from pathlib import Path
 from . import __version__, cache
 from .beats import align_segment, bar_duration, detect_beats, quantize_duration
 from .config import Config
+from .editing import validate_segments
 from .media import extract_audio, frame_gaps, probe
 from .render import concat, cut, mux_mixed, mux_music
 from .scoring import audio_energy_curve, boost_curve, fuse, motion_energy_curve
@@ -215,6 +216,7 @@ def run(
     work_dir: str | Path | None = None,
     keep_work: bool = False,
     progress: Callable[[str], None] | None = None,
+    segments: list[Segment] | None = None,
 ) -> dict:
     """Analyze, render the montage, and write a manifest next to it."""
     cfg = config or Config()
@@ -226,7 +228,12 @@ def run(
     work = _work_dir(out, work_dir)
     work.mkdir(parents=True, exist_ok=True)
 
-    analysis = analyze(video, music, cfg, work_dir=work, progress=progress)
+    if segments is None:
+        analysis = analyze(video, music, cfg, work_dir=work, progress=progress)
+    else:
+        report("Loading your edited highlight selection…")
+        info = probe(video)
+        analysis = Analysis(info, BeatGrid(), validate_segments(segments, info.duration_s))
 
     keep_game = cfg.keep_game_audio and analysis.video.has_audio
     parts = []

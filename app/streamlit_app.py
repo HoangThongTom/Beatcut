@@ -10,6 +10,7 @@ Run locally with:  streamlit run app/streamlit_app.py
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import math
 import os
@@ -25,6 +26,7 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
 import streamlit as st  # noqa: E402
 
 from beatcut.config import Config  # noqa: E402
+from beatcut.editing import rows_to_segments  # noqa: E402
 from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
 
@@ -179,6 +181,18 @@ if st.button("Render montage", type="primary", use_container_width=True):
             "music_start": music_start,
             "music_name": music_file.name,
         }
+        st.session_state["edit_project"] = {
+            "video": str(video_path), "music": str(music_path),
+            "duration": info.duration_s, "music_duration": music_duration,
+            "config": {**cfg.to_dict(), "music_start_s": manifest["music_start_s"]},
+            "rows": [
+                {"Keep": True, "Order": index + 1,
+                 "Start (s)": segment["start"], "End (s)": segment["end"]}
+                for index, segment in enumerate(manifest["analysis"]["segments"])
+            ],
+            "history": [],
+        }
+        st.session_state["edit_revision"] = st.session_state.get("edit_revision", 0) + 1
 
 if "last_montage" in st.session_state:
     result = st.session_state["last_montage"]
@@ -192,6 +206,79 @@ if "last_montage" in st.session_state:
         mime="video/mp4",
         use_container_width=True,
     )
+
+if "edit_project" in st.session_state:
+    project = st.session_state["edit_project"]
+    st.markdown('<div class="bc-section"><b>EDIT</b><h2>Make it yours</h2></div>',
+                unsafe_allow_html=True)
+    st.caption(
+        "Times refer to the original gameplay. Change start/end to trim or extend a clip, "
+        "untick Keep to remove it, or change Order to rearrange. Apply edits before exporting. "
+        "Manual cuts use your exact times and may fall between beats."
+    )
+    selection = rows_to_segments(project["rows"], project["duration"])
+    st.markdown(
+        '<div class="bc-timeline" aria-label="Applied clip sequence">'
+        + ''.join(
+            f'<div style="flex:{clip.duration}">{index + 1}<small>'
+            f'{clip.duration:.1f}s</small></div>'
+            for index, clip in enumerate(selection)
+        ) + '</div>', unsafe_allow_html=True,
+    )
+    clip_index = st.selectbox(
+        "Preview original gameplay", range(len(project["rows"])),
+        format_func=lambda i: f"Clip {i + 1} · {project['rows'][i]['Start (s)']:.2f}s",
+        key=f"source_preview_{st.session_state['edit_revision']}",
+    )
+    st.video(project["video"], start_time=int(project["rows"][clip_index]["Start (s)"]))
+    with st.form(f"clip_edits_{st.session_state['edit_revision']}"):
+        edited_rows = st.data_editor(
+            project["rows"], hide_index=True, use_container_width=True,
+            column_config={
+                "Keep": st.column_config.CheckboxColumn("Keep"),
+                "Order": st.column_config.NumberColumn("Order", min_value=1, step=1),
+                "Start (s)": st.column_config.NumberColumn("Start (s)", min_value=0.0, step=0.1),
+                "End (s)": st.column_config.NumberColumn("End (s)", min_value=0.0, step=0.1),
+            },
+        )
+        if st.form_submit_button("Apply edits"):
+            try:
+                rows_to_segments(edited_rows, project["duration"])
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                project["history"].append(copy.deepcopy(project["rows"]))
+                project["rows"] = copy.deepcopy(edited_rows)
+                st.session_state["edit_revision"] += 1
+                st.rerun()
+    if st.button("Undo edit", disabled=not project["history"]):
+        project["rows"] = project["history"].pop()
+        st.session_state["edit_revision"] += 1
+        st.rerun()
+    selection = rows_to_segments(project["rows"], project["duration"])
+    st.caption(f"Applied selection: {len(selection)} clips · "
+               f"{sum(s.duration for s in selection):.1f}s. Preview above shows the latest export.")
+    if st.button("Export edited MP4", type="primary", use_container_width=True):
+        cfg = Config(**project["config"])
+        if sum(s.duration for s in selection) > project["music_duration"] - cfg.music_start_s:
+            st.error("Your edits need more music. Shorten the selection before exporting.")
+        else:
+            output = Path(project["video"]).parent / "edited-montage.mp4"
+            with st.status("Exporting your edits…", expanded=True) as edit_status:
+                try:
+                    manifest = run(
+                        project["video"], project["music"], output, cfg,
+                        segments=selection, progress=edit_status.write,
+                    )
+                    result = st.session_state["last_montage"]
+                    result["data"] = output.read_bytes()
+                    result["duration"] = manifest["analysis"]["total_duration_s"]
+                except Exception as exc:  # noqa: BLE001
+                    edit_status.update(label="Export failed", state="error")
+                    st.error(f"Could not export your edits: {exc}")
+                else:
+                    edit_status.update(label="Edited montage ready", state="complete")
+                    st.rerun()
 
 st.markdown(
     '<div class="bc-footer"><span>BeatCut · Made for your best plays.</span>'

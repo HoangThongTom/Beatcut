@@ -32,6 +32,12 @@ Thời lượng thực tế có thể chênh nhẹ để độ dài clip khớp 
 Khi xử lý, demo hiển thị bước hiện tại, dữ liệu phân tích được dùng lại và số
 đoạn highlight đã render xong.
 
+Sau khi tạo video, mục **Make it yours** cho phép xem gameplay gốc, chỉnh đầu/cuối
+đoạn bằng timestamp, bỏ đoạn và đổi thứ tự. Bấm **Apply edits**, rồi **Export edited
+MP4** để xuất lại. **Undo edit** hoàn tác lần chỉnh đã áp dụng gần nhất. Cắt thủ
+công giữ đúng timestamp bạn chọn, không tự bắt vào nhịp. Bản chỉnh chỉ được giữ
+trong phiên hiện tại; mở lại trang sẽ bắt đầu phiên mới.
+
 ## Vấn đề
 
 Dựng montage highlight bằng tay nghĩa là xem hàng giờ footage, nhớ timestamp, rồi
