@@ -32,16 +32,30 @@ MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "60"))
 
 st.set_page_config(page_title="BeatCut", page_icon="🎬", layout="centered")
 
-st.title("🎬 BeatCut")
 st.markdown(
-    "Turn a gameplay clip into a short montage that **cuts on the beat** of a song. "
-    "It scores the footage for action, picks the busiest moments, and cuts each clip "
-    "to a whole number of musical bars. No model, no GPU, no training."
+    f"<style>{Path(__file__).with_name('style.css').read_text(encoding='utf-8')}</style>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    '<div class="bc-nav"><div class="bc-brand">▥ Beat<span>Cut</span></div>'
+    '<div class="bc-label">Gameplay. Rhythm. Highlights.</div></div>'
+    '<div class="bc-hero"><div class="bc-label">Your best plays. Remixed.</div>'
+    '<h1>Make every play<br><span>hit the beat.</span></h1>'
+    '<p>Turn your gameplay into a highlight montage that moves with your music. '
+    'Bring the footage. Pick the track. We’ll find the moments.</p>'
+    '<div class="bc-tags"><span>Beat-synced cuts</span><span>Automatic highlights</span>'
+    '<span>Your music, your moment</span></div>'
+    '<div class="bc-wave" aria-hidden="true">'
+    + ''.join(f'<i style="height:{h}px"></i>' for h in
+              [10, 20, 34, 16, 42, 26, 12, 32, 48, 22, 36, 14, 28, 40, 18, 30, 12])
+    + '</div></div>',
+    unsafe_allow_html=True,
 )
 
 demo_video = Path(__file__).resolve().parent.parent / "docs" / "assets" / "montage-demo.mp4"
 if demo_video.is_file():
-    st.subheader("Sample montage")
+    st.markdown('<div class="bc-section"><b>PLAY</b><h2>See it in action</h2></div>',
+                unsafe_allow_html=True)
     st.video(str(demo_video))
     st.caption(
         "44-second montage from an 11-minute gameplay recording: "
@@ -50,28 +64,33 @@ if demo_video.is_file():
 
 with st.expander("How it works"):
     st.markdown(
-        "1. decode the video at 4 fps and measure motion energy\n"
-        "2. measure loudness from the game audio\n"
-        "3. fuse the signals and slide a scoring window over them\n"
-        "4. keep the top non-overlapping windows\n"
-        "5. quantise each clip to whole bars so every cut lands on the beat\n"
-        "6. cut, concatenate, and mix game audio under the music"
+        "1. Upload your gameplay and a music track.\n"
+        "2. We find the action and choose highlights.\n"
+        "3. Cuts follow the musical bars, with game audio mixed under your track.\n"
+        "4. Preview your montage and download the MP4."
     )
 
 st.caption(
-    f"Rendering is synchronous, so this demo accepts clips up to {MAX_DURATION_S:.0f} "
-    "seconds. Longer recordings: run `beatcut run` locally."
+    f"Try it with a gameplay clip up to {MAX_DURATION_S:.0f} seconds. "
+    "Upload a shorter excerpt for this demo."
 )
 
-video_file = st.file_uploader("Gameplay clip", type=["mp4", "mov", "mkv", "webm"])
-music_file = st.file_uploader("Music track", type=["mp3", "wav", "m4a", "ogg", "flac"])
+st.markdown('<div class="bc-section"><b>01</b><h2>Bring your footage & sound</h2></div>',
+            unsafe_allow_html=True)
+video_col, music_col = st.columns(2)
+with video_col:
+    video_file = st.file_uploader("Gameplay clip", type=["mp4", "mov", "mkv", "webm"])
+with music_col:
+    music_file = st.file_uploader("Music track", type=["mp3", "wav", "m4a", "ogg", "flac"])
 
-st.subheader("Montage settings")
-target_duration = st.number_input(
+st.markdown('<div class="bc-section"><b>02</b><h2>Find your rhythm</h2></div>',
+            unsafe_allow_html=True)
+duration_col, start_col = st.columns(2)
+target_duration = duration_col.number_input(
     "Montage duration (seconds)", min_value=5, max_value=600, value=45, step=5,
     help="Approximate length. Cuts follow musical bars, so the final length can vary.",
 )
-music_start = st.number_input(
+music_start = start_col.number_input(
     "Start music at (seconds)", min_value=0, value=0, step=1,
     help="For example, enter 25 to start at 0:25. This exact offset is used in the montage.",
 )
@@ -89,6 +108,8 @@ if music_file is not None:
     )
     st.caption("Press play to listen. Changing the start above also updates the preview.")
 
+st.markdown('<div class="bc-section"><b>03</b><h2>Make the cut</h2></div>',
+            unsafe_allow_html=True)
 if st.button("Render montage", type="primary", use_container_width=True):
     if not video_file or not music_file:
         st.error("Upload both a clip and a music track.")
@@ -171,3 +192,9 @@ if "last_montage" in st.session_state:
         mime="video/mp4",
         use_container_width=True,
     )
+
+st.markdown(
+    '<div class="bc-footer"><span>BeatCut · Made for your best plays.</span>'
+    '<span>Cut to the rhythm. Keep the moment.</span></div>',
+    unsafe_allow_html=True,
+)
