@@ -90,10 +90,10 @@ train model trên Colab" với "người làm được việc".
 - [x] Xem nguồn, cắt đoạn, giữ/bỏ, đổi thứ tự, hoàn tác và xuất MP4 thủ công
 - [x] Lưu/mở lại bản dựng, kiểm tra đúng nội dung video và nhạc gốc
 - [x] Timeline kéo thả đổi thứ tự, có nút mũi tên cho bàn phím/điện thoại
-- [ ] Tay nắm cắt đầu/cuối trên timeline và tuỳ chọn bắt nhịp thủ công
+- [x] Tay nắm cắt đầu/cuối trên timeline và tuỳ chọn bắt nhịp thủ công
 - [ ] Điều khiển âm lượng, chữ và chuyển cảnh
 
-Mốc editor tiếp theo: cắt đầu/cuối trên timeline và bắt nhịp. Mốc nghiên cứu vẫn là gán nhãn độc lập
+Mốc editor tiếp theo: điều chỉnh âm lượng, sau đó đến chữ và chuyển cảnh. Mốc nghiên cứu vẫn là gán nhãn độc lập
 và đo precision@5 theo quy trình đánh giá, không dùng bản chỉnh từ đề xuất tự động
 làm ground truth độc lập.
 

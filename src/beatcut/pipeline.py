@@ -51,6 +51,25 @@ def _work_dir(out_path: Path, work_dir: str | Path | None) -> Path:
     return out_path.parent / f"{out_path.stem}_work"
 
 
+def music_beats(music: str | Path, cfg: Config, work: Path,
+                progress: Callable[[str], None] | None = None) -> BeatGrid:
+    """Load or detect music beats without analyzing the gameplay."""
+    report = progress or (lambda message: None)
+    key = cache.fingerprint(music, cfg, "music")
+    cached = cache.load(cfg.cache_dir, key) if cfg.use_cache else None
+    grid = cached[1] if cached is not None else None
+    if grid is not None:
+        report("Reusing saved music beats.")
+        return grid
+    report("Analyzing the music beat…")
+    work.mkdir(parents=True, exist_ok=True)
+    music_wav = extract_audio(music, work / "music.wav", cfg.audio_sr)
+    grid = detect_beats(str(music_wav), cfg.audio_sr, cfg.beats_per_bar)
+    if cfg.use_cache:
+        cache.save(cfg.cache_dir, key, {}, grid)
+    return grid
+
+
 def analyze(
     video: str | Path,
     music: str | Path,
@@ -77,7 +96,6 @@ def analyze(
 
     cache_dir = Path(cfg.cache_dir)
     video_key = cache.fingerprint(video, cfg)
-    music_key = cache.fingerprint(music, cfg, "music")
     cached = cache.load(cache_dir, video_key) if cfg.use_cache else None
 
     if cached is not None:
@@ -100,16 +118,7 @@ def analyze(
         if cfg.use_cache:
             cache.save(cache_dir, video_key, curves)
 
-    cached_music = cache.load(cache_dir, music_key) if cfg.use_cache else None
-    grid = cached_music[1] if cached_music is not None else None
-    if grid is None:
-        report("Analyzing the music beat…")
-        music_wav = extract_audio(music, work / "music.wav", cfg.audio_sr)
-        grid = detect_beats(str(music_wav), cfg.audio_sr, cfg.beats_per_bar)
-        if cfg.use_cache:
-            cache.save(cache_dir, music_key, {}, grid)
-    else:
-        report("Reusing saved music beats.")
+    grid = music_beats(music, cfg, work, progress)
 
     weights = {"motion": cfg.motion_weight, "audio": cfg.audio_weight}
     fused = fuse(motion_times, curves, weights)

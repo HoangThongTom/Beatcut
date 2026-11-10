@@ -35,16 +35,19 @@ Khi xử lý, demo hiển thị bước hiện tại, dữ liệu phân tích đ
 Sau khi tạo video, mục **Make it yours** cho phép xem gameplay gốc, chỉnh đầu/cuối
 đoạn bằng timestamp, bỏ đoạn và đổi thứ tự. Bấm **Apply edits**, rồi **Export edited
 MP4** để xuất lại. **Undo edit** hoàn tác lần chỉnh đã áp dụng gần nhất. Cắt thủ
-công giữ đúng timestamp bạn chọn, không tự bắt vào nhịp. Bấm **Save project** sau
+công trong bảng giữ đúng timestamp bạn chọn. Bấm **Save project** sau
 khi áp dụng chỉnh sửa để tải bản dựng. Lần sau, tải đúng gameplay và nhạc gốc,
 rồi chọn tệp JSON trong **Open a saved project**. Tệp bản dựng không chứa video
 hay nhạc; BeatCut kiểm tra nội dung nguồn trước khi khôi phục.
 
-Kéo các đoạn trên timeline rồi bấm **Apply timeline order** để đổi thứ tự.
-Nút mũi tên hỗ trợ bàn phím và điện thoại. Timeline hiển thị thời gian cộng dồn
-của montage và mốc nguồn của mỗi clip. Thứ tự đã áp dụng được lưu trong lịch sử
-hoàn tác, bản dựng và MP4 xuất lại. Cắt đầu/cuối vẫn dùng bảng; hãy áp dụng các
-chỉnh sửa trong bảng trước khi sắp xếp timeline.
+Kéo các đoạn trên timeline để đổi thứ tự, dùng tay nắm **Start / End** để cắt hoặc
+kéo dài đoạn, rồi bấm **Apply timeline edits**. Nút mũi tên hỗ trợ bàn phím và điện
+thoại. Bật **Snap to music beats** để căn điểm nối cuối clip vừa chỉnh vào nhịp
+gần nhất trong phạm vi 0,25 giây, có tính mốc nhạc và độ dài các clip đứng trước.
+Phím mũi tên trên tay nắm chỉnh 0,01 giây khi tắt Snap, hoặc chuyển giữa các nhịp
+khi bật Snap. Cắt hay đổi thứ tự có thể làm các điểm nối phía sau lệch nhịp; Snap
+không tự căn lại toàn bộ montage. Chỉnh sửa đã áp dụng được lưu trong lịch sử hoàn
+tác, bản dựng và MP4 xuất lại. Hãy áp dụng chỉnh sửa trong bảng trước khi dùng timeline.
 
 ## Vấn đề
 

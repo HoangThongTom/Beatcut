@@ -9,6 +9,21 @@ from collections.abc import Sequence
 from .types import Segment
 
 
+def apply_timeline(rows: list[dict], clips: list[dict], duration: float) -> list[dict]:
+    """Validate the component payload before applying order and source trims."""
+    try:
+        result = reorder_rows(rows, [clip["id"] for clip in clips])
+        for clip in clips:
+            if any(type(clip[key]) not in (int, float) for key in ("start", "end")):
+                raise ValueError("Timeline times must be numbers.")
+            result[clip["id"]]["Start (s)"] = clip["start"]
+            result[clip["id"]]["End (s)"] = clip["end"]
+        rows_to_segments(result, duration)
+    except (KeyError, TypeError) as exc:
+        raise ValueError("Invalid timeline edits.") from exc
+    return result
+
+
 def reorder_rows(rows: list[dict], order: list[int]) -> list[dict]:
     """Apply a permutation of kept row IDs, retaining removed clips for undo."""
     expected = {index for index, row in enumerate(rows) if row["Keep"]}
@@ -29,7 +44,7 @@ def validate_segments(segments: Sequence[Segment], duration: float) -> list[Segm
             raise ValueError(f"Clip {index}: enter valid start and end times.")
         if segment.start < 0 or segment.end > duration:
             raise ValueError(f"Clip {index}: times must stay between 0 and {duration:.2f}s.")
-        if segment.end - segment.start < 0.1:
+        if segment.end - segment.start < 0.1 - 1e-9:
             raise ValueError(f"Clip {index}: end must be at least 0.1s after start.")
     return [Segment(s.start, s.end, s.score) for s in segments]
 

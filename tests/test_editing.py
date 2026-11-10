@@ -1,6 +1,6 @@
 import pytest
 
-from beatcut.editing import reorder_rows, rows_to_segments
+from beatcut.editing import apply_timeline, reorder_rows, rows_to_segments
 
 
 def row(start, end, order=1, keep=True):
@@ -34,3 +34,25 @@ def test_timeline_order_preserves_removed_clips_and_does_not_mutate_input():
 def test_invalid_timeline_permutations_rejected(order):
     with pytest.raises(ValueError):
         reorder_rows([row(1, 4), row(10, 13, 2)], order)
+
+
+def test_timeline_trims_reorders_and_retains_excluded_rows():
+    rows = [row(1, 4), row(10, 13, 2, False), row(20, 25, 3)]
+    result = apply_timeline(rows, [
+        {"id": 2, "start": 21.2, "end": 26.4},
+        {"id": 0, "start": 3.9, "end": 4},
+    ], 40)
+    assert [(s.start, s.end) for s in rows_to_segments(result, 40)] == [(21.2, 26.4), (3.9, 4)]
+    assert result[1] == rows[1]
+    assert rows[0]["Start (s)"] == 1
+
+
+@pytest.mark.parametrize("clips", [None, [1], [{}],
+    [{"id": 0, "start": True, "end": 3}],
+    [{"id": 0, "start": 0, "end": 41}],
+    [{"id": 0, "start": float("nan"), "end": 3}],
+    [{"id": 0, "start": 2.95, "end": 3}],
+])
+def test_invalid_timeline_trim_payload(clips):
+    with pytest.raises(ValueError):
+        apply_timeline([row(1, 4)], clips, 40)

@@ -14,9 +14,9 @@ start/end times, playback order, music start, audio mix settings and SHA-256
 identities of both source files. The original filenames are hints; contents must
 match, even if you rename the files. No media, server paths or credentials are saved.
 
-Timeline reordering becomes part of the project after **Apply timeline order**.
-Drag before/after a clip or use its arrow buttons, then apply. Applying creates
-an undo checkpoint and leaves source timestamps unchanged. Timeline edits not
+Timeline order and trims become part of the project after **Apply timeline edits**.
+Drag before/after a clip or use its arrow buttons; use Start / End handles to trim
+or extend the source range. Applying creates an undo checkpoint. Timeline edits not
 yet applied, like pending table edits, are not included in a saved project.
 
 The format is versioned (`format: beatcut-project`, `version: 1`). Unknown versions,
@@ -25,6 +25,13 @@ also validates timestamps against the actual video and available music. The web
 demo's source-duration limit still applies. Undo history and exported MP4s are
 not included; reopening starts a new undo history.
 
-Manual edits preserve exact source timestamps and do not automatically snap cuts
-to musical bars. A saved selection is not an independent highlight annotation
+Table edits preserve exact source timestamps. Optional **Snap to music beats**
+on the timeline aligns the edited clip's outgoing montage cut to a detected beat
+within 0.25s (including the music offset and earlier clip lengths). Keyboard
+arrows on a focused handle jump between beats with Snap enabled. Source bounds
+and the 0.1s minimum still apply. Reordering or trimming can shift later cuts;
+there is no automatic realignment of all cuts. Beats are loaded from the shared
+music cache, or detected without analyzing gameplay when a project is reopened.
+Only the resulting times are saved; the Snap toggle is a session preference.
+A saved selection is not an independent highlight annotation
 for the evaluation protocol: it was derived from BeatCut's proposed highlights.

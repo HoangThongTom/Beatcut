@@ -27,15 +27,17 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
 import streamlit as st  # noqa: E402
 import streamlit.components.v1 as components  # noqa: E402
 
-from beatcut import editing  # noqa: E402
+from beatcut import editing, pipeline  # noqa: E402
 
 # Cloud can rerun this entry point before refreshing an already-imported source module.
-if not hasattr(editing, "reorder_rows"):
-    importlib.invalidate_caches()
-    importlib.reload(editing)
+for module, helper in ((editing, "reorder_rows"), (editing, "apply_timeline"),
+                       (pipeline, "music_beats")):
+    if not hasattr(module, helper):
+        importlib.invalidate_caches()
+        importlib.reload(module)
 
 from beatcut.config import Config  # noqa: E402
-from beatcut.editing import reorder_rows, rows_to_segments  # noqa: E402
+from beatcut.editing import apply_timeline, rows_to_segments  # noqa: E402
 from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
 from beatcut.project import load_project, save_project  # noqa: E402
@@ -278,7 +280,8 @@ if "edit_project" in st.session_state:
         "Times refer to the original gameplay. Change start/end to trim or extend a clip, "
         "untick Keep to remove it, or change Order to rearrange. Apply edits before exporting. "
         "Apply table edits before using the timeline to keep those changes. "
-        "Manual cuts use your exact times and may fall between beats."
+        "Use the timeline handles to trim. Enable Snap to music beats to align a changed "
+        "clip's outgoing cut; later cuts may shift when you trim or reorder."
     )
     selection = rows_to_segments(project["rows"], project["duration"])
     timeline_clips = [
@@ -286,11 +289,26 @@ if "edit_project" in st.session_state:
         for index, row in sorted(enumerate(project["rows"]), key=lambda pair: pair[1]["Order"])
         if row["Keep"]
     ]
-    new_order = timeline(clips=timeline_clips, default=None,
-                         key=f"timeline_{st.session_state['edit_revision']}")
-    if new_order is not None:
+    beat_times = []
+    if st.checkbox("Snap to music beats", key="timeline_snap"):
         try:
-            reordered = reorder_rows(project["rows"], new_order)
+            with st.spinner("Loading music beats…"):
+                grid = pipeline.music_beats(
+                    project["music"], Config(**project["config"]),
+                    Path(project["video"]).parent / "editor-beats",
+                )
+            beat_times = [t - project["config"]["music_start_s"] for t in grid.beats
+                          if t >= project["config"]["music_start_s"]]
+            if not beat_times:
+                st.info("No beats found after the music start. Trimming uses exact times.")
+        except Exception as exc:  # noqa: BLE001
+            st.warning(f"Could not load beats; trimming uses exact times: {exc}")
+    new_clips = timeline(clips=timeline_clips, duration=project["duration"],
+                         beats=beat_times, default=None,
+                         key=f"timeline_{st.session_state['edit_revision']}")
+    if new_clips is not None:
+        try:
+            reordered = apply_timeline(project["rows"], new_clips, project["duration"])
         except ValueError as exc:
             st.error(str(exc))
         else:

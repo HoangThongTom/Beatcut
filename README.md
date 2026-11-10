@@ -35,17 +35,20 @@ number of highlight clips completed.
 After rendering, the **Make it yours** editor lets you preview the source gameplay,
 trim or extend clips by timestamp, remove clips, and change their order. Click
 **Apply edits**, then **Export edited MP4**. **Undo edit** restores the previous
-applied selection. Manual cuts keep your exact timestamps rather than snapping to
-beats. Click **Save project** after applying edits to download your edit decisions.
+applied selection. Table edits keep your exact timestamps. Click **Save project**
+after applying edits to download your edit decisions.
 To resume later, upload the original gameplay and music, then open the saved JSON
 under **Open a saved project**. Media files are not included in the project;
 BeatCut checks their contents before restoring. See [project files](docs/projects.md).
 
-Drag timeline clips to reorder them, then click **Apply timeline order**.
-Arrow buttons support keyboard and touch use. The timeline shows cumulative
-montage times and original source ranges. Its applied order is included in
-undo history, saved projects and edited exports. Trimming still uses the table;
-apply any pending table edits before rearranging the timeline.
+Drag timeline clips to reorder them and use their **Start / End** handles to trim
+or extend footage, then click **Apply timeline edits**. Arrow buttons support
+keyboard and touch use. **Snap to music beats** moves a changed clip's outgoing
+cut to a detected beat within 0.25s, accounting for the music start and preceding
+clips. Handle arrow keys move by 0.01s with Snap off, or jump between beats with
+Snap on. Later cuts may shift after trimming or reordering; Snap does not realign
+the whole montage. Applied edits are included in undo, saved projects and exports.
+Apply pending table edits before using the timeline.
 
 ## The problem
 

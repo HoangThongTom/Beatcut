@@ -97,10 +97,10 @@ what you built and how you measured it.
 - [x] Source preview, clip trims, keep/remove, order, undo and manual MP4 export
 - [x] Save/reopen edit decisions with original-media verification
 - [x] Drag-and-drop timeline for clip order, with keyboard/touch arrow controls
-- [ ] Timeline trim handles and optional beat snapping for manual edits
+- [x] Timeline trim handles and optional beat snapping for manual edits
 - [ ] Audio mixing controls, text and transitions
 
-Next editor milestone: timeline trim handles and beat snapping. The core research milestone is
+Next editor milestone: audio mixing controls, followed by text and transitions. The core research milestone is
 independently labelled VODs and precision@5 as defined in the evaluation protocol.
 
 ## Your hardware (RTX 2050, 4 GB)
