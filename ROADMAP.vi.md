@@ -8,6 +8,8 @@ code dở dang.
 
 Mốc hiện tại: **M1 xong, M2 xong một nửa** — pipeline đã chạy trên VOD thật, có
 bộ dò hạ gục, có số liệu ablation.
+Demo Streamlit, CI, cache khi đổi nhạc, tiến độ xử lý và editor cơ bản đã có.
+Đánh giá M2/M4 vẫn chưa xong; phần editor không thay thế việc đo chất lượng highlight.
 
 ---
 
@@ -56,11 +58,10 @@ trên chữ toàn màn hình đọc cả icon thành chữ cái, nên phải cro
 
 ## M3 — Đóng gói (tuần 5–6)
 
-- [ ] `docker build` + `docker run` chạy được `app/api.py` (Dockerfile có sẵn
-      nhưng chưa test lần nào)
-- [ ] GitHub Actions: `ruff check` + `pytest` trên mỗi push
-- [ ] Giới hạn độ dài upload — API hiện tại đồng bộ, video 1 GB sẽ timeout
-- [ ] Deploy demo lên Hugging Face Spaces (Docker SDK)
+- [x] Đóng gói API bằng Docker (kiểm tra local được ghi trong [deploy/README.md](deploy/README.md))
+- [x] GitHub Actions: `ruff check` + `pytest` trên mỗi push vào main
+- [x] Giới hạn độ dài upload; render hiện vẫn đồng bộ
+- [x] Deploy demo lên Streamlit Community Cloud; giữ cấu hình Spaces để tham khảo
 - [ ] Export ONNX, benchmark `onnxruntime` so với PyTorch (FPS, ms/frame)
 
 **Xong khi:** có link demo bấm được, và CI xanh.
@@ -81,6 +82,19 @@ train model trên Colab" với "người làm được việc".
 **Xong khi:** người phỏng vấn đọc README 2 phút là hiểu bạn làm gì và đo thế nào.
 
 ---
+
+## Nhánh mở rộng editor
+
+- [x] Chọn thời lượng, mốc bắt đầu nhạc và nghe thử
+- [x] Dùng lại gameplay/OCR khi đổi nhạc; hiển thị tiến độ
+- [x] Xem nguồn, cắt đoạn, giữ/bỏ, đổi thứ tự, hoàn tác và xuất MP4 thủ công
+- [x] Lưu/mở lại bản dựng, kiểm tra đúng nội dung video và nhạc gốc
+- [ ] Timeline kéo thả và tuỳ chọn bắt nhịp khi cắt thủ công
+- [ ] Điều khiển âm lượng, chữ và chuyển cảnh
+
+Mốc editor tiếp theo: timeline. Mốc nghiên cứu chính vẫn là gán nhãn độc lập
+và đo precision@5 theo quy trình đánh giá, không dùng bản chỉnh từ đề xuất tự động
+làm ground truth độc lập.
 
 ## Phần cứng của bạn (RTX 2050, 4 GB)
 

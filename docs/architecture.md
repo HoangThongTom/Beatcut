@@ -36,6 +36,12 @@ flowchart TD
 `pipeline.analyze()` stops right after `G`; `pipeline.run()` continues to `O`.
 That split is what makes evaluation possible without rendering minutes of video.
 
+Manual editor exports call `pipeline.run(..., segments=...)`: validated source
+ranges bypass automatic analysis and retain the user's order and timestamps.
+`editing.py` validates selections; `project.py` serializes and validates portable
+edit decisions. See [project files](projects.md). Gameplay curves, music beats and
+OCR results use separate cache entries so changing music reuses gameplay analysis.
+
 ## Module map
 
 | Module | Responsibility | Depends on |

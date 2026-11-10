@@ -29,8 +29,23 @@ from beatcut.config import Config  # noqa: E402
 from beatcut.editing import rows_to_segments  # noqa: E402
 from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
+from beatcut.project import load_project, save_project  # noqa: E402
 
 MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "60"))
+
+
+def save_sources(uploads):
+    if "work_dir" not in st.session_state:
+        st.session_state["work_dir"] = tempfile.mkdtemp(prefix="beatcut-")
+    paths = []
+    for upload in uploads:
+        content = upload.getvalue()
+        digest = hashlib.sha256(content).hexdigest()
+        path = Path(st.session_state["work_dir"]) / f"{digest}{Path(upload.name).suffix}"
+        if not path.exists():
+            path.write_bytes(content)
+        paths.append(path)
+    return paths
 
 st.set_page_config(page_title="BeatCut", page_icon="🎬", layout="centered")
 
@@ -112,23 +127,49 @@ if music_file is not None:
 
 st.markdown('<div class="bc-section"><b>03</b><h2>Make the cut</h2></div>',
             unsafe_allow_html=True)
+with st.expander("Open a saved project"):
+    st.caption("Upload your saved project and the same original gameplay and music above. "
+               "A project saves your edits, not the media files.")
+    saved_file = st.file_uploader("BeatCut project (.json)", type=["json"])
+    if st.button("Open project"):
+        if saved_file is None or video_file is None or music_file is None:
+            st.error("Upload a project, gameplay and music first.")
+        else:
+            try:
+                saved = load_project(saved_file.getvalue())
+                for kind, upload in (("video", video_file), ("music", music_file)):
+                    digest = hashlib.sha256(upload.getvalue()).hexdigest()
+                    if digest != saved["sources"][kind]["sha256"]:
+                        raise ValueError(f"Upload the original {kind} used in this saved project.")
+                video_path, music_path = save_sources((video_file, music_file))
+                info = probe(video_path)
+                music_duration = audio_duration(music_path)
+                if info.duration_s > MAX_DURATION_S:
+                    raise ValueError(f"This demo accepts gameplay up to {MAX_DURATION_S:.0f}s.")
+                selection = rows_to_segments(saved["rows"], info.duration_s)
+                start = saved["settings"]["music_start_s"]
+                if start + sum(s.duration for s in selection) > music_duration:
+                    raise ValueError("The saved selection exceeds the available music.")
+                restored = {
+                    "video": str(video_path), "music": str(music_path),
+                    "duration": info.duration_s, "music_duration": music_duration,
+                    "config": Config(**saved["settings"]).to_dict(),
+                    "rows": saved["rows"], "sources": saved["sources"], "history": [],
+                }
+            except Exception as exc:  # noqa: BLE001 - invalid file or unreadable media
+                st.error(f"Could not open project: {exc}")
+            else:
+                st.session_state["edit_project"] = restored
+                st.session_state.pop("last_montage", None)
+                st.session_state["edit_revision"] = st.session_state.get("edit_revision", 0) + 1
+                st.success("Project opened. Continue in Make it yours below, then export your MP4.")
+
 if st.button("Render montage", type="primary", use_container_width=True):
     if not video_file or not music_file:
         st.error("Upload both a clip and a music track.")
     else:
-        if "work_dir" not in st.session_state:
-            st.session_state["work_dir"] = tempfile.mkdtemp(prefix="beatcut-")
-        job = Path(st.session_state["work_dir"])
-        paths = []
-        for upload in (video_file, music_file):
-            content = upload.getvalue()
-            digest = hashlib.sha256(content).hexdigest()
-            path = job / f"{digest}{Path(upload.name).suffix}"
-            # Keep the path and modification time stable across renders in this session.
-            if not path.exists():
-                path.write_bytes(content)
-            paths.append(path)
-        video_path, music_path = paths
+        video_path, music_path = save_sources((video_file, music_file))
+        job = video_path.parent
 
         try:
             info = probe(video_path)
@@ -182,6 +223,11 @@ if st.button("Render montage", type="primary", use_container_width=True):
             "music_name": music_file.name,
         }
         st.session_state["edit_project"] = {
+            "sources": {
+                kind: {"name": upload.name,
+                       "sha256": hashlib.sha256(upload.getvalue()).hexdigest()}
+                for kind, upload in (("video", video_file), ("music", music_file))
+            },
             "video": str(video_path), "music": str(music_path),
             "duration": info.duration_s, "music_duration": music_duration,
             "config": {**cfg.to_dict(), "music_start_s": manifest["music_start_s"]},
@@ -211,6 +257,11 @@ if "edit_project" in st.session_state:
     project = st.session_state["edit_project"]
     st.markdown('<div class="bc-section"><b>EDIT</b><h2>Make it yours</h2></div>',
                 unsafe_allow_html=True)
+    st.download_button(
+        "Save project", data=save_project(project), file_name="beatcut-project.json",
+        mime="application/json",
+    )
+    st.caption("Save after applying edits. Keep your original gameplay and music to reopen later.")
     st.caption(
         "Times refer to the original gameplay. Change start/end to trim or extend a clip, "
         "untick Keep to remove it, or change Order to rearrange. Apply edits before exporting. "
@@ -257,7 +308,7 @@ if "edit_project" in st.session_state:
         st.rerun()
     selection = rows_to_segments(project["rows"], project["duration"])
     st.caption(f"Applied selection: {len(selection)} clips · "
-               f"{sum(s.duration for s in selection):.1f}s. Preview above shows the latest export.")
+               f"{sum(s.duration for s in selection):.1f}s. Export to preview the saved selection.")
     if st.button("Export edited MP4", type="primary", use_container_width=True):
         cfg = Config(**project["config"])
         if sum(s.duration for s in selection) > project["music_duration"] - cfg.music_start_s:
@@ -270,7 +321,10 @@ if "edit_project" in st.session_state:
                         project["video"], project["music"], output, cfg,
                         segments=selection, progress=edit_status.write,
                     )
-                    result = st.session_state["last_montage"]
+                    result = st.session_state.setdefault("last_montage", {
+                        "music_start": cfg.music_start_s,
+                        "music_name": project["sources"]["music"]["name"],
+                    })
                     result["data"] = output.read_bytes()
                     result["duration"] = manifest["analysis"]["total_duration_s"]
                 except Exception as exc:  # noqa: BLE001

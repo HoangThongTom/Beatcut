@@ -37,6 +37,12 @@ flowchart TD
 chỗ tách đó khiến việc đánh giá trở nên khả thi mà không phải render hàng phút
 video.
 
+Editor gọi `pipeline.run(..., segments=...)` với các đoạn đã kiểm tra hợp lệ để
+bỏ qua phân tích tự động, giữ đúng thứ tự và timestamp người dùng chọn.
+`editing.py` kiểm tra đoạn cắt; `project.py` lưu/đọc bản dựng có phiên bản và định
+danh nội dung nguồn. Cache gameplay, nhịp nhạc và OCR được lưu riêng để đổi nhạc
+không phải phân tích gameplay lại. Xem [tệp bản dựng](projects.md).
+
 ## Bản đồ module
 
 | Module | Trách nhiệm | Phụ thuộc |

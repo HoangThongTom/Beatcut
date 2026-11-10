@@ -36,7 +36,10 @@ After rendering, the **Make it yours** editor lets you preview the source gamepl
 trim or extend clips by timestamp, remove clips, and change their order. Click
 **Apply edits**, then **Export edited MP4**. **Undo edit** restores the previous
 applied selection. Manual cuts keep your exact timestamps rather than snapping to
-beats. Edits are kept in the current session; reopening the page starts a new session.
+beats. Click **Save project** after applying edits to download your edit decisions.
+To resume later, upload the original gameplay and music, then open the saved JSON
+under **Open a saved project**. Media files are not included in the project;
+BeatCut checks their contents before restoring. See [project files](docs/projects.md).
 
 ## The problem
 

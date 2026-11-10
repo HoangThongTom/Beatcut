@@ -35,8 +35,10 @@ Khi xử lý, demo hiển thị bước hiện tại, dữ liệu phân tích đ
 Sau khi tạo video, mục **Make it yours** cho phép xem gameplay gốc, chỉnh đầu/cuối
 đoạn bằng timestamp, bỏ đoạn và đổi thứ tự. Bấm **Apply edits**, rồi **Export edited
 MP4** để xuất lại. **Undo edit** hoàn tác lần chỉnh đã áp dụng gần nhất. Cắt thủ
-công giữ đúng timestamp bạn chọn, không tự bắt vào nhịp. Bản chỉnh chỉ được giữ
-trong phiên hiện tại; mở lại trang sẽ bắt đầu phiên mới.
+công giữ đúng timestamp bạn chọn, không tự bắt vào nhịp. Bấm **Save project** sau
+khi áp dụng chỉnh sửa để tải bản dựng. Lần sau, tải đúng gameplay và nhạc gốc,
+rồi chọn tệp JSON trong **Open a saved project**. Tệp bản dựng không chứa video
+hay nhạc; BeatCut kiểm tra nội dung nguồn trước khi khôi phục.
 
 ## Vấn đề
 

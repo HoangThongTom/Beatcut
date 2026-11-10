@@ -6,7 +6,9 @@ One rule: **every milestone must be a working product**. If time runs out at M2,
 you still have a finished project to put on a CV, not a pile of half-written code.
 
 Where things stand: **M1 done, M2 half done** — the pipeline runs on real VODs,
-has a kill detector, and the ablation is measured.
+has a kill detector, and the ablation is measured. The Streamlit demo, CI, cache
+reuse, progress reporting and basic editor are shipped. M2/M4 evaluation remains
+unfinished; editor work does not establish highlight quality.
 
 ---
 
@@ -58,12 +60,10 @@ crop has to be tight.
 
 ## M3 — packaging (weeks 5–6)
 
-- [ ] `docker build` + `docker run` serving `app/api.py` (the Dockerfile exists
-      but has never been tested)
-- [ ] GitHub Actions: `ruff check` + `pytest` on every push
-- [ ] Cap upload duration — the current API is synchronous and a 1 GB video will
-      time out
-- [ ] Deploy a demo to Hugging Face Spaces (Docker SDK)
+- [x] Docker API packaging (local verification documented in [deploy/README.md](deploy/README.md))
+- [x] GitHub Actions: `ruff check` + `pytest` on every push to main
+- [x] Cap upload duration; rendering remains synchronous
+- [x] Deploy a demo to Streamlit Community Cloud; retain the Spaces configuration
 - [ ] Export ONNX and benchmark `onnxruntime` against PyTorch (FPS, ms/frame)
 
 **Done when:** there is a demo link you can click, and CI is green.
@@ -74,6 +74,8 @@ crop has to be tight.
 ---
 
 ## M4 — telling the story (weeks 7–8)
+
+The editor extension is tracked separately below; the evaluation checklist still applies.
 
 - [ ] Run the full [eval protocol](docs/eval-protocol.md) over 10 VODs, split
       dev/test
@@ -87,6 +89,18 @@ crop has to be tight.
 what you built and how you measured it.
 
 ---
+
+## Editor extension
+
+- [x] Montage duration, music start and audio preview
+- [x] Reuse gameplay/OCR when switching music; show pipeline progress
+- [x] Source preview, clip trims, keep/remove, order, undo and manual MP4 export
+- [x] Save/reopen edit decisions with original-media verification
+- [ ] Drag-and-drop timeline and optional beat snapping for manual edits
+- [ ] Audio mixing controls, text and transitions
+
+Next editor milestone: the timeline. In parallel, the core research milestone is
+independently labelled VODs and precision@5 as defined in the evaluation protocol.
 
 ## Your hardware (RTX 2050, 4 GB)
 
