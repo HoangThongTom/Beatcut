@@ -40,6 +40,15 @@ the same undo history as clip edits, and reopen with the saved project. Export
 an edited MP4 to hear the applied mix; sliders do not alter an already rendered
 preview. Music volume also applies when game audio is disabled or absent.
 
+**Transitions** saves an optional `transition_s` setting. Zero means hard cuts;
+0.1–1s in the UI enables fade through black at all joins. Each outgoing/incoming
+clip gets half the fade, without overlap, so montage duration, title timing and
+music offsets stay unchanged. Game audio fades too; the music remains continuous
+and titles are added above the faded footage. A single clip has no join and is
+unaffected. Transitions must not exceed the shortest kept clip; shorten the fade
+before trimming a clip below that length. Apply before saving/exporting; undo
+restores the previous setting. Older version-1 files without it default to hard cuts.
+
 **Text overlay** saves one optional title (up to 120 characters) with its time
 range in the final montage, position, color and relative size. Apply the title
 before saving/exporting; clear its text and apply to remove it. Titles use the

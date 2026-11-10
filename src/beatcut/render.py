@@ -24,6 +24,8 @@ def cut(
     crf: int = 20,
     preset: str = "veryfast",
     with_audio: bool = True,
+    fade_in_s: float = 0.0,
+    fade_out_s: float = 0.0,
 ) -> Path:
     """Re-encode a single time range to its own file.
 
@@ -42,6 +44,18 @@ def cut(
     ]
     if not with_audio:
         cmd.append("-an")
+    video_fades, audio_fades = [], []
+    for direction, length, start in (
+        ("in", fade_in_s, 0.0), ("out", fade_out_s, duration - fade_out_s),
+    ):
+        if length > 0:
+            settings = f"t={direction}:st={start:.4f}:d={length:.4f}"
+            video_fades.append(f"fade={settings}")
+            audio_fades.append(f"afade={settings}")
+    if video_fades:
+        cmd += ["-vf", ",".join(video_fades)]
+        if with_audio:
+            cmd += ["-af", ",".join(audio_fades)]
     cmd += [
         "-c:v", "libx264", "-preset", preset, "-crf", str(crf),
         "-pix_fmt", "yuv420p",

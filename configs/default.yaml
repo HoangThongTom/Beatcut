@@ -32,6 +32,7 @@ skip_frame_drops: true # ignore windows that contain a recording stutter
 crf: 20
 preset: veryfast
 music_start_s: null    # null -> start the music on the first downbeat
+transition_s: 0.0      # 0 -> hard cut; up to 1s fade through black at clip joins
 
 # --- audio mix ---
 keep_game_audio: true    # false -> music only, no game sound

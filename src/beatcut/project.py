@@ -6,7 +6,7 @@ import json
 import math
 import re
 
-from .editing import rows_to_segments, validate_segments
+from .editing import rows_to_segments, validate_segments, validate_transition
 from .titles import validate_title
 from .types import Segment
 
@@ -43,9 +43,10 @@ def load_project(raw: bytes) -> dict:
         required = {
             "music_start_s", "keep_game_audio", "game_audio_volume", "music_volume",
         }
-        if not required <= set(settings) or set(settings) - required - {"title"}:
+        if not required <= set(settings) or set(settings) - required - {"title", "transition_s"}:
             raise ValueError
         validate_title(settings.get("title"), sum(s.duration for s in selection))
+        validate_transition(settings.get("transition_s", 0), selection)
         if type(settings["keep_game_audio"]) is not bool:
             raise ValueError
         for key in ("music_start_s", "game_audio_volume", "music_volume"):
@@ -77,6 +78,8 @@ def save_project(project: dict) -> bytes:
     }
     if project["config"].get("title") is not None:
         data["settings"]["title"] = project["config"]["title"]
+    if project["config"].get("transition_s", 0):
+        data["settings"]["transition_s"] = project["config"]["transition_s"]
     raw = json.dumps(data, ensure_ascii=False, allow_nan=False, indent=2).encode("utf-8")
     load_project(raw)
     return raw

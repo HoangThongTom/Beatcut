@@ -7,6 +7,7 @@ from pathlib import Path
 
 import yaml
 
+from .editing import validate_transition
 from .titles import validate_title
 
 
@@ -43,6 +44,7 @@ class Config:
     preset: str = "veryfast"
     music_start_s: float | None = None
     title: dict | None = None
+    transition_s: float = 0.0
 
     # --- audio mix ---
     # Keeping the game sound is what makes a montage feel like gameplay rather
@@ -65,6 +67,7 @@ class Config:
 
     def __post_init__(self) -> None:
         validate_title(self.title)
+        validate_transition(self.transition_s)
         if self.window_s <= 0 or self.stride_s <= 0:
             raise ValueError("window_s and stride_s must be positive")
         if self.kill_crop is not None:

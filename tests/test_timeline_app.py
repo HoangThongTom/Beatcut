@@ -138,6 +138,25 @@ def test_timeline_trim_save_undo_snap_and_export(tmp_path, monkeypatch):
     next(b for b in app.button if b.label == "Undo edit").click().run()
     assert not app.exception
     assert app.session_state["edit_project"]["config"].get("title") is None
+
+    next(s for s in app.selectbox if s.label == "Transition style").select("Fade through black")
+    next(s for s in app.slider if s.label == "Transition duration (s)").set_value(0.4)
+    next(b for b in app.button if b.label == "Apply transitions").click().run()
+    assert not app.exception
+    transition_saved = load_project(save_project(app.session_state["edit_project"]))
+    assert transition_saved["settings"]["transition_s"] == 0.4
+    next(b for b in app.button if b.label == "Export edited MP4").click().run()
+    assert not app.exception
+    assert captured[-1].transition_s == 0.4
+    pending.append([{"id": 1, "start": 11.1, "end": 11.3},
+                    {"id": 0, "start": 1.2, "end": 3.5}])
+    app.run()
+    assert not app.exception
+    assert app.error
+    assert app.session_state["edit_project"]["rows"] == transition_saved["rows"]
+    next(b for b in app.button if b.label == "Undo edit").click().run()
+    assert not app.exception
+    assert app.session_state["edit_project"]["config"].get("transition_s", 0) == 0
     assert app.session_state["edit_project"]["config"]["music_volume"] == 0.25
 
     next(t for t in app.text_area if t.label == "Title text").set_value("Invalid title time")

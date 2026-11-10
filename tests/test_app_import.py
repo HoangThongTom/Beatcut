@@ -7,7 +7,7 @@ from beatcut import editing
 AppTest = pytest.importorskip("streamlit.testing.v1").AppTest
 
 
-@pytest.mark.parametrize("helper", ["reorder_rows", "apply_timeline"])
+@pytest.mark.parametrize("helper", ["reorder_rows", "apply_timeline", "validate_transition"])
 def test_app_recovers_a_cached_pre_timeline_module(monkeypatch, helper):
     monkeypatch.delattr(editing, helper)
     app = AppTest.from_file(

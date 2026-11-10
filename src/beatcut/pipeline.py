@@ -15,7 +15,7 @@ from pathlib import Path
 from . import __version__, cache
 from .beats import align_segment, bar_duration, detect_beats, quantize_duration
 from .config import Config
-from .editing import validate_segments
+from .editing import validate_segments, validate_transition
 from .media import extract_audio, frame_gaps, probe
 from .render import concat, cut, mux_mixed, mux_music, overlay_title
 from .scoring import audio_energy_curve, boost_curve, fuse, motion_energy_curve
@@ -246,6 +246,7 @@ def run(
         analysis = Analysis(info, BeatGrid(), validate_segments(segments, info.duration_s))
 
     validate_title(cfg.title, sum(segment.duration for segment in analysis.segments))
+    validate_transition(cfg.transition_s, analysis.segments)
     keep_game = cfg.keep_game_audio and analysis.video.has_audio
     parts = []
     total = len(analysis.segments)
@@ -258,6 +259,8 @@ def run(
             cfg.crf,
             cfg.preset,
             with_audio=keep_game,
+            fade_in_s=cfg.transition_s / 2 if index > 0 else 0,
+            fade_out_s=cfg.transition_s / 2 if index < total - 1 else 0,
         ))
         report(f"Rendering highlights: {index + 1}/{total} completed.")
     report("Joining highlight clips…")

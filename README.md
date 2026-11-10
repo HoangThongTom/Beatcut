@@ -61,6 +61,13 @@ then **Apply title → Export edited MP4**. Clear the text and apply to remove i
 Titles are saved and undoable; shorten their end time before trimming the montage
 below that point. Long text wraps to fit the frame.
 
+In **Transitions**, select **Hard cut** or **Fade through black**, set a 0.1–1s
+duration, then **Apply transitions → Export edited MP4**. Half the fade lies on
+each side of a join, so clip lengths and music timing stay unchanged. Game audio
+fades with the picture; music and title overlays continue. Fade duration cannot
+exceed the shortest kept clip; a single clip has no transition. Applied settings
+are saved in projects and support undo.
+
 For full-match footage on Windows, install `requirements.txt` in the project's
 `.venv`, then double-click **Start-BeatCut.cmd**. The local interface opens at
 [localhost:8501](http://localhost:8501), accepts gameplay up to 60 minutes and
@@ -237,7 +244,7 @@ add learning, deployment and polish. The full checklist is in
 
 - Beat tracking assumes 4/4 music; downbeats are a phase heuristic, not a
   trained downbeat model.
-- Cuts are hard cuts. Crossfades and beat-matched transitions are M4.
+- Cuts support hard cuts or fade through black. Overlapping crossfades are not implemented.
 - Music longer than the montage is fine; shorter music is padded with silence.
 - One video in, one montage out — no multi-VOD stitching yet.
 

@@ -100,10 +100,12 @@ what you built and how you measured it.
 - [x] Timeline trim handles and optional beat snapping for manual edits
 - [x] Music/game volume controls, game mute, saved settings and undo
 - [x] One text overlay: Unicode, timing, position/color/size, saved settings and undo
-- [ ] Transitions
+- [x] Fade-through-black joins with duration controls, saved settings and undo
 
-Next editor milestone: transitions. The core research milestone is
-independently labelled VODs and precision@5 as defined in the evaluation protocol.
+The basic editor branch is complete. Fades preserve clip lengths and music timing;
+overlapping crossfades are not implemented. Next priority: prepare independently
+labelled VODs and measure precision@5 as defined in the evaluation protocol.
+The unfinished M2/M4 tasks above remain unfinished.
 
 ## Your hardware (RTX 2050, 4 GB)
 

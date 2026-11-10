@@ -93,11 +93,12 @@ train model trên Colab" với "người làm được việc".
 - [x] Tay nắm cắt đầu/cuối trên timeline và tuỳ chọn bắt nhịp thủ công
 - [x] Điều khiển âm lượng nhạc/tiếng game, tắt tiếng game, lưu và hoàn tác
 - [x] Thêm một lớp chữ: tiếng Việt, mốc hiển thị, vị trí/màu/cỡ, lưu và hoàn tác
-- [ ] Chuyển cảnh
+- [x] Chuyển mờ qua đen tại điểm nối, chỉnh thời lượng, lưu và hoàn tác
 
-Mốc editor tiếp theo: chuyển cảnh. Mốc nghiên cứu vẫn là gán nhãn độc lập
-và đo precision@5 theo quy trình đánh giá, không dùng bản chỉnh từ đề xuất tự động
-làm ground truth độc lập.
+Nhánh editor cơ bản đã hoàn thành. Chuyển cảnh giữ nguyên thời lượng và mốc nhạc;
+chưa có crossfade chồng hai clip. Ưu tiên tiếp theo là chuẩn bị VOD để gán nhãn độc lập
+và đo precision@5 theo quy trình đánh giá. Không dùng bản chỉnh từ đề xuất tự động
+làm ground truth độc lập; các ô M2/M4 chưa hoàn thành vẫn giữ nguyên.
 
 ## Phần cứng của bạn (RTX 2050, 4 GB)
 

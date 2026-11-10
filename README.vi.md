@@ -61,6 +61,12 @@ rồi bấm **Apply title → Export edited MP4**. Xoá nội dung rồi áp d�
 Chữ được lưu trong project và hỗ trợ hoàn tác. Nếu cắt montage ngắn hơn mốc kết
 thúc chữ, hãy chỉnh thời gian chữ trước. Nội dung dài tự xuống dòng cho vừa khung.
 
+Trong **Transitions**, chọn **Hard cut** hoặc **Fade through black**, chỉnh độ dài
+0,1–1 giây, rồi **Apply transitions → Export edited MP4**. Mỗi bên điểm nối dùng
+một nửa thời gian mờ nên thời lượng và mốc nhạc giữ nguyên. Tiếng game mờ cùng hình;
+nhạc và lớp chữ tiếp tục chạy. Chuyển cảnh không dài hơn clip ngắn nhất đang giữ;
+một clip đơn lẻ không có chuyển cảnh. Thiết lập được lưu trong project và hỗ trợ hoàn tác.
+
 ## Vấn đề
 
 Dựng montage highlight bằng tay nghĩa là xem hàng giờ footage, nhớ timestamp, rồi
@@ -246,7 +252,7 @@ lường. Checklist đầy đủ trong [ROADMAP.vi.md](ROADMAP.vi.md).
 
 - Beat tracking giả định nhạc 4/4; downbeat là heuristic theo pha, không phải mô
   hình downbeat đã huấn luyện.
-- Cắt là hard cut. Crossfade và chuyển cảnh khớp nhịp nằm ở M4.
+- Hỗ trợ hard cut hoặc mờ qua đen. Chưa có crossfade chồng hai clip.
 - Nhạc dài hơn montage thì ổn; nhạc ngắn hơn sẽ được đệm im lặng.
 - Một video vào, một montage ra — chưa ghép nhiều VOD.
 

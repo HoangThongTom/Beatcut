@@ -41,6 +41,17 @@ def test_project_saves_title_and_rejects_times_beyond_edited_length():
         save_project(original)
 
 
+def test_project_saves_transitions_and_rejects_overlong_fades():
+    original = project()
+    original["rows"][1]["Keep"] = True
+    original["config"]["transition_s"] = 0.4
+    loaded = load_project(save_project(original))
+    assert loaded["settings"]["transition_s"] == 0.4
+    original["rows"][1]["End (s)"] = 1.2
+    with pytest.raises(ValueError):
+        save_project(original)
+
+
 @pytest.mark.parametrize("change", [
     lambda p: p.update(version=99),
     lambda p: p.update(rows=[]),

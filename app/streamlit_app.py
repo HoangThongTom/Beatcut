@@ -26,13 +26,14 @@ from beatcut import editing, pipeline  # noqa: E402
 
 # Cloud can rerun this entry point before refreshing an already-imported source module.
 for module, helper in ((editing, "reorder_rows"), (editing, "apply_timeline"),
+                       (editing, "validate_transition"),
                        (pipeline, "music_beats")):
     if not hasattr(module, helper):
         importlib.invalidate_caches()
         importlib.reload(module)
 
 from beatcut.config import Config  # noqa: E402
-from beatcut.editing import apply_timeline, rows_to_segments  # noqa: E402
+from beatcut.editing import apply_timeline, rows_to_segments, validate_transition  # noqa: E402
 from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
 from beatcut.project import load_project, save_project  # noqa: E402
@@ -322,6 +323,8 @@ if "edit_project" in st.session_state:
             validate_title(project["config"].get("title"), sum(
                 s.duration for s in rows_to_segments(reordered, project["duration"])
             ))
+            validate_transition(project["config"].get("transition_s", 0),
+                                rows_to_segments(reordered, project["duration"]))
         except ValueError as exc:
             st.error(str(exc))
         else:
@@ -349,6 +352,7 @@ if "edit_project" in st.session_state:
         if st.form_submit_button("Apply edits"):
             try:
                 changed_selection = rows_to_segments(edited_rows, project["duration"])
+                validate_transition(project["config"].get("transition_s", 0), changed_selection)
                 validate_title(project["config"].get("title"),
                                sum(s.duration for s in changed_selection))
             except ValueError as exc:
@@ -358,6 +362,33 @@ if "edit_project" in st.session_state:
                 project["rows"] = copy.deepcopy(edited_rows)
                 st.session_state["edit_revision"] += 1
                 st.rerun()
+    st.markdown("**Transitions**")
+    st.caption("Fade through black keeps clip lengths and music timing unchanged. "
+               "Half the fade is before each cut, half after it. "
+               "Game sound fades with the picture. "
+               "The title stays above the transition. Apply, then export to preview.")
+    transition = project["config"].get("transition_s", 0.0)
+    with st.form(f"transitions_{st.session_state['edit_revision']}"):
+        style = st.selectbox("Transition style", ["Hard cut", "Fade through black"],
+                             index=int(transition > 0))
+        fade_length = st.slider("Transition duration (s)", 0.1, 1.0,
+                                float(transition or 0.4), step=0.1)
+        if st.form_submit_button("Apply transitions"):
+            new_transition = fade_length if style == "Fade through black" else 0.0
+            try:
+                validate_transition(new_transition, selection)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                if new_transition != transition:
+                    remember_edit(project)
+                    project["config"]["transition_s"] = new_transition
+                    st.session_state["edit_revision"] += 1
+                    st.rerun()
+    if len(selection) < 2:
+        st.caption("A single clip has no transition. Keep at least two clips to see the effect.")
+    st.caption(f"Applied transitions: fade through black · {transition:.1f}s"
+               if transition else "Applied transitions: hard cuts")
     st.markdown("**Audio mix**")
     st.caption("0 = mute · 1 = original level · 2 = boost. "
                "Game sound requires audio in the source. "

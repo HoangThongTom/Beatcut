@@ -9,6 +9,16 @@ from collections.abc import Sequence
 from .types import Segment
 
 
+def validate_transition(seconds: float, segments: Sequence[Segment] | None = None) -> None:
+    """A transition straddles a cut, with half its fade on each side."""
+    if type(seconds) not in (int, float) or not math.isfinite(seconds) or not 0 <= seconds <= 1:
+        raise ValueError("Transition duration must be between 0 and 1 second.")
+    if seconds and segments is not None and len(segments) > 1:
+        if any(segment.duration + 1e-9 < seconds for segment in segments):
+            raise ValueError("Shorten the transition or extend the clips: "
+                             "transition duration cannot exceed the shortest kept clip.")
+
+
 def apply_timeline(rows: list[dict], clips: list[dict], duration: float) -> list[dict]:
     """Validate the component payload before applying order and source trims."""
     try:
