@@ -19,8 +19,8 @@ cả bạn của hai tuần sau.
 
 ## Xây dựng ground truth
 
-1. Quay hoặc chọn **10 VOD**, mỗi cái 10–60 phút, từ gameplay của chính bạn. Khác
-   map, khác phiên — không phải mười clip của cùng một trận.
+1. Quay hoặc chọn **5 VOD**, mỗi cái 10–60 phút, từ gameplay của chính bạn. Khác
+   map, khác phiên — không phải năm clip của cùng một trận.
 2. Với mỗi VOD, cho **hai người** độc lập đánh dấu các đoạn highlight (bắt đầu,
    kết thúc) mà không thấy nhãn của người kia và không thấy kết quả của BeatCut.
 3. Giữ những đoạn mà hai người lệch nhau không quá ±2 giây. Bỏ phần còn lại. Đây
@@ -38,7 +38,7 @@ cả bạn của hai tuần sau.
 }
 ```
 
-5. Chia thành `dev` (6 VOD, dùng để chỉnh weight/config) và `test` (4 VOD, chỉ
+5. Chia thành `dev` (3 VOD, dùng để chỉnh weight/config) và `test` (2 VOD, chỉ
    báo cáo một lần). Chỉnh trên tập test rồi báo cáo trên chính nó là cách con số
    trở nên vô nghĩa.
 
@@ -77,7 +77,7 @@ Không có cặp đồng thuận thì chưa thể chấm precision@5 cho VOD đ�
 
 Giữ hai file nhãn gốc; JSON chỉ chứa tên video, hash, thời lượng và mốc nhãn, không
 chứa video hay đường dẫn trên máy. Không nhập project, manifest hay các clip do
-BeatCut đề xuất làm nhãn độc lập. Công cụ này chưa thay thế việc chọn đủ 10 VOD
+BeatCut đề xuất làm nhãn độc lập. Công cụ này chưa thay thế việc chọn đủ 5 VOD
 10–60 phút và chốt dev/test theo bước 5 ở trên.
 
 ### Chấm kết quả
@@ -116,6 +116,8 @@ nhất để đo và so sánh được ngay giữa các phiên bản.
 ## Cách báo cáo
 
 Đặt một bảng trong README với cột `dev` và `test`, số VOD, và hash của config.
+Với 5 VOD (3 dev / 2 test), đây là đánh giá quy mô nhỏ; kết quả chỉ phản ánh bộ
+dữ liệu này, chưa đủ để kết luận chất lượng trên nhiều game hoặc nhiều kiểu gameplay.
 Nếu precision là 0.62 thì báo 0.62 — một thực tập sinh báo 0.62 kèm phân tích lỗi
 rõ ràng thuyết phục hơn nhiều so với người báo 0.95 mà không ai tái lập được.
 

@@ -18,8 +18,8 @@ reproduce, including you in two weeks.
 
 ## Building the ground truth
 
-1. Record or select **10 VODs**, each 10–60 minutes, from your own gameplay.
-   Different maps, different sessions — not ten clips of the same match.
+1. Record or select **5 VODs**, each 10–60 minutes, from your own gameplay.
+   Different maps, different sessions — not five clips of the same match.
 2. For each VOD, have **two people** independently mark highlight ranges
    (start, end) without seeing the other's marks and without seeing BeatCut's
    output.
@@ -38,7 +38,7 @@ reproduce, including you in two weeks.
 }
 ```
 
-5. Split into `dev` (6 VODs, tune weights/config) and `test` (4 VODs, report
+5. Split into `dev` (3 VODs, tune weights/config) and `test` (2 VODs, report
    once). Tuning on the test set and then reporting it is how the number becomes
    meaningless.
 
@@ -70,7 +70,7 @@ No agreed highlights means the current score CLI cannot evaluate that VOD.
 
 Keep the raw annotations. Files contain source identity and labels, not media or
 local paths. Projects/predictions are not independent annotations and cannot be
-imported by this tool. The 10-VOD, 6-dev/4-test requirement above still applies.
+imported by this tool. The 5-VOD, 3-dev/2-test requirement above still applies.
 
 ### Scoring
 
@@ -106,6 +106,9 @@ milliseconds to the nearest downbeat. Report mean and p95. This is the one
 number that is cheap to measure and immediately comparable between versions.
 
 ## Reporting
+
+With 5 VODs (3 dev / 2 test), this is a small-scale evaluation. Results describe
+this dataset and do not establish quality across other games or gameplay styles.
 
 Put a table in the README with `dev` and `test` columns, the number of VODs, and
 the config hash. If precision is 0.62, report 0.62 — an intern who reports an
