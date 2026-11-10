@@ -40,6 +40,12 @@ khi áp dụng chỉnh sửa để tải bản dựng. Lần sau, tải đúng g
 rồi chọn tệp JSON trong **Open a saved project**. Tệp bản dựng không chứa video
 hay nhạc; BeatCut kiểm tra nội dung nguồn trước khi khôi phục.
 
+Kéo các đoạn trên timeline rồi bấm **Apply timeline order** để đổi thứ tự.
+Nút mũi tên hỗ trợ bàn phím và điện thoại. Timeline hiển thị thời gian cộng dồn
+của montage và mốc nguồn của mỗi clip. Thứ tự đã áp dụng được lưu trong lịch sử
+hoàn tác, bản dựng và MP4 xuất lại. Cắt đầu/cuối vẫn dùng bảng; hãy áp dụng các
+chỉnh sửa trong bảng trước khi sắp xếp timeline.
+
 ## Vấn đề
 
 Dựng montage highlight bằng tay nghĩa là xem hàng giờ footage, nhớ timestamp, rồi

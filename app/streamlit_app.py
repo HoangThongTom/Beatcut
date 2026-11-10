@@ -24,14 +24,18 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 import streamlit as st  # noqa: E402
+import streamlit.components.v1 as components  # noqa: E402
 
 from beatcut.config import Config  # noqa: E402
-from beatcut.editing import rows_to_segments  # noqa: E402
+from beatcut.editing import reorder_rows, rows_to_segments  # noqa: E402
 from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
 from beatcut.project import load_project, save_project  # noqa: E402
 
 MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "60"))
+timeline = components.declare_component(
+    "beatcut_timeline", path=str(Path(__file__).with_name("timeline")),
+)
 
 
 def save_sources(uploads):
@@ -265,17 +269,28 @@ if "edit_project" in st.session_state:
     st.caption(
         "Times refer to the original gameplay. Change start/end to trim or extend a clip, "
         "untick Keep to remove it, or change Order to rearrange. Apply edits before exporting. "
+        "Apply table edits before using the timeline to keep those changes. "
         "Manual cuts use your exact times and may fall between beats."
     )
     selection = rows_to_segments(project["rows"], project["duration"])
-    st.markdown(
-        '<div class="bc-timeline" aria-label="Applied clip sequence">'
-        + ''.join(
-            f'<div style="flex:{clip.duration}">{index + 1}<small>'
-            f'{clip.duration:.1f}s</small></div>'
-            for index, clip in enumerate(selection)
-        ) + '</div>', unsafe_allow_html=True,
-    )
+    timeline_clips = [
+        {"id": index, "start": row["Start (s)"], "end": row["End (s)"]}
+        for index, row in sorted(enumerate(project["rows"]), key=lambda pair: pair[1]["Order"])
+        if row["Keep"]
+    ]
+    new_order = timeline(clips=timeline_clips, default=None,
+                         key=f"timeline_{st.session_state['edit_revision']}")
+    if new_order is not None:
+        try:
+            reordered = reorder_rows(project["rows"], new_order)
+        except ValueError as exc:
+            st.error(str(exc))
+        else:
+            if reordered != project["rows"]:
+                project["history"].append(copy.deepcopy(project["rows"]))
+                project["rows"] = reordered
+                st.session_state["edit_revision"] += 1
+                st.rerun()
     clip_index = st.selectbox(
         "Preview original gameplay", range(len(project["rows"])),
         format_func=lambda i: f"Clip {i + 1} · {project['rows'][i]['Start (s)']:.2f}s",

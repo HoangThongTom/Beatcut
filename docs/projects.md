@@ -14,6 +14,11 @@ start/end times, playback order, music start, audio mix settings and SHA-256
 identities of both source files. The original filenames are hints; contents must
 match, even if you rename the files. No media, server paths or credentials are saved.
 
+Timeline reordering becomes part of the project after **Apply timeline order**.
+Drag before/after a clip or use its arrow buttons, then apply. Applying creates
+an undo checkpoint and leaves source timestamps unchanged. Timeline edits not
+yet applied, like pending table edits, are not included in a saved project.
+
 The format is versioned (`format: beatcut-project`, `version: 1`). Unknown versions,
 invalid timestamps and settings, and files over 1 MB are rejected. Restoring
 also validates timestamps against the actual video and available music. The web

@@ -2,10 +2,23 @@
 
 from __future__ import annotations
 
+import copy
 import math
 from collections.abc import Sequence
 
 from .types import Segment
+
+
+def reorder_rows(rows: list[dict], order: list[int]) -> list[dict]:
+    """Apply a permutation of kept row IDs, retaining removed clips for undo."""
+    expected = {index for index, row in enumerate(rows) if row["Keep"]}
+    if (not isinstance(order, list) or any(type(index) is not int for index in order)
+            or len(order) != len(expected) or set(order) != expected):
+        raise ValueError("The timeline order must contain each kept clip exactly once.")
+    result = copy.deepcopy(rows)
+    for position, index in enumerate(order, 1):
+        result[index]["Order"] = position
+    return result
 
 
 def validate_segments(segments: Sequence[Segment], duration: float) -> list[Segment]:

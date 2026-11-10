@@ -42,11 +42,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .bc-footer { border-top: 1px solid #29293d; margin-top: 40px; padding-top: 20px;
     color: #aaa7c0; font-size: 12px; display: flex; flex-wrap: wrap; gap: 12px;
     justify-content: space-between; }
-.bc-timeline { display: flex; gap: 4px; padding: 12px; background: #171724;
-    border: 1px solid #34324d; border-radius: 12px; overflow-x: auto; margin: 12px 0; }
-.bc-timeline > div { min-width: 48px; padding: 8px; border-radius: 6px;
-    background: #554477; color: #f1f0fa; font-size: 13px; font-weight: 700; }
-.bc-timeline small { display: block; color: #e0d7f9; font-weight: 400; }
 @media (max-width: 600px) {
     .block-container { padding: 2rem 1.1rem; }
     .bc-hero h1 { letter-spacing: -1.7px; }

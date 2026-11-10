@@ -15,6 +15,10 @@ jobs:
         with:
           python-version: "3.11"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       # The unit tests do not shell out to ffmpeg, but the doctor step does, and
       # keeping the runner close to a real install catches packaging mistakes.
       - name: Install ffmpeg
@@ -32,6 +36,9 @@ jobs:
 
       - name: Test
         run: pytest -q
+
+      - name: Timeline interactions
+        run: node --test tests/timeline.test.cjs
 
       - name: Environment check
         run: beatcut doctor

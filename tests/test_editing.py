@@ -1,6 +1,6 @@
 import pytest
 
-from beatcut.editing import rows_to_segments
+from beatcut.editing import reorder_rows, rows_to_segments
 
 
 def row(start, end, order=1, keep=True):
@@ -20,3 +20,17 @@ def test_trim_reorder_and_remove():
 def test_invalid_edits_are_rejected(rows):
     with pytest.raises(ValueError):
         rows_to_segments(rows, 40)
+
+
+def test_timeline_order_preserves_removed_clips_and_does_not_mutate_input():
+    rows = [row(1, 4), row(10, 13, 2, False), row(20, 25, 3)]
+    edited = reorder_rows(rows, [2, 0])
+    assert [s.start for s in rows_to_segments(edited, 40)] == [20, 1]
+    assert edited[1] == rows[1]
+    assert rows[0]["Order"] == 1
+
+
+@pytest.mark.parametrize("order", [[0, 0], [0], [0, 1, 2], [False, 1], [0, "1"], None])
+def test_invalid_timeline_permutations_rejected(order):
+    with pytest.raises(ValueError):
+        reorder_rows([row(1, 4), row(10, 13, 2)], order)

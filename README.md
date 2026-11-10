@@ -41,6 +41,12 @@ To resume later, upload the original gameplay and music, then open the saved JSO
 under **Open a saved project**. Media files are not included in the project;
 BeatCut checks their contents before restoring. See [project files](docs/projects.md).
 
+Drag timeline clips to reorder them, then click **Apply timeline order**.
+Arrow buttons support keyboard and touch use. The timeline shows cumulative
+montage times and original source ranges. Its applied order is included in
+undo history, saved projects and edited exports. Trimming still uses the table;
+apply any pending table edits before rearranging the timeline.
+
 ## The problem
 
 Editing a highlight montage by hand means watching hours of footage, remembering
