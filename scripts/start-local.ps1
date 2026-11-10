@@ -3,10 +3,12 @@ param(
     [int]$MaxDurationSeconds = 3600,
     [ValidateRange(1024, 65535)]
     [int]$Port = 8501,
-    [switch]$NoBrowser
+    [switch]$NoBrowser,
+    [switch]$Annotate
 )
 
 $ErrorActionPreference = 'Stop'
+if ($Annotate -and -not $PSBoundParameters.ContainsKey('Port')) { $Port = 8503 }
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $python = Join-Path $projectRoot '.venv\Scripts\python.exe'
 if (-not (Test-Path -LiteralPath $python)) {
@@ -38,7 +40,8 @@ try {
     Write-Host "Gameplay limit: $MaxDurationSeconds seconds. Upload limit: 1024 MB per file."
     Write-Host 'Keep this window open. Press Ctrl+C to stop BeatCut.'
     $headless = if ($NoBrowser) { 'true' } else { 'false' }
-    & $python -m streamlit run app/streamlit_app.py `
+    $entryPoint = if ($Annotate) { 'app/labeling_app.py' } else { 'app/streamlit_app.py' }
+    & $python -m streamlit run $entryPoint `
         --server.address 127.0.0.1 --server.port $Port `
         --server.maxUploadSize 1024 --server.headless $headless `
         --browser.gatherUsageStats false

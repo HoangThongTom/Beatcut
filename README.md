@@ -159,6 +159,7 @@ beatcut analyze VIDEO MUSIC        # print the chosen clips, render nothing
 beatcut run VIDEO MUSIC -o OUT     # full pipeline
 beatcut kills VIDEO --box x,y,w,h  # OCR the in-game kill counter
 beatcut score LABELS SELECTION     # precision@k against labels
+beatcut agree A.json B.json -o GT.json # two-person agreement (±2 seconds)
 beatcut version
 ```
 
@@ -228,6 +229,12 @@ outputs/         rendered montages — gitignored
 ```
 
 ## Evaluation
+
+Double-click **Start-Labeling.cmd** for independent source-only annotation at
+[localhost:8503](http://localhost:8503). Each person opens the original video by
+local path, marks highlights, and saves their own JSON without seeing montage
+suggestions. Combine completed annotations with `beatcut agree` before scoring.
+See the [labeling workflow](docs/eval-protocol.md#local-independent-labeling).
 
 `tests/` covers the pure logic (selection, snapping, config). Measuring whether
 the *chosen clips are any good* is a different problem, and it needs human

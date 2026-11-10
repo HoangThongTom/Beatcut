@@ -20,6 +20,11 @@ variables take precedence.
 .\scripts\start-local.ps1 -Port 8503 -MaxDurationSeconds 7200
 ```
 
+For independent human labeling, double-click **Start-Labeling.cmd** or pass
+`-Annotate` to the launcher. It defaults to port 8503, reads original videos by
+local path, and does not show automatic highlights. See the
+[evaluation protocol](../docs/eval-protocol.md#local-independent-labeling).
+
 ## Streamlit Community Cloud
 
 **Live demo:** [BeatCut](https://beatcut-hb8jo3fdd5dsrvthptc2qf.streamlit.app/)

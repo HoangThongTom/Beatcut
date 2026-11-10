@@ -73,6 +73,7 @@ train model trên Colab" với "người làm được việc".
 
 ## M4 — Kể chuyện (tuần 7–8)
 
+- [x] Công cụ xem nguồn/gán nhãn độc lập và ghép đồng thuận hai người (±2 giây)
 - [ ] Chạy đủ [eval protocol](docs/eval-protocol.vi.md) trên 10 VOD, tách dev/test
 - [ ] Error analysis: 10 false positive, mỗi cái một câu giải thích
 - [ ] Blog post 800–1200 từ: bài toán, cách làm, số liệu, cái gì fail

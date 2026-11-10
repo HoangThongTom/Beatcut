@@ -140,6 +140,27 @@ def cmd_score(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_agree(args: argparse.Namespace) -> int:
+    from .annotations import agree_annotations, load_annotations
+
+    agreed = agree_annotations(load_annotations(Path(args.left).read_bytes()),
+                               load_annotations(Path(args.right).read_bytes()))
+    output = Path(args.out)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with output.open("x", encoding="utf-8") as handle:
+            json.dump(agreed, handle, ensure_ascii=False, indent=2)
+    except FileExistsError as exc:
+        raise ValueError("Output already exists; choose a new filename "
+                         "to preserve existing labels.") from exc
+    report = agreed["agreement"]
+    print(f"agreed {report['matched']} highlights; "
+          f"excluded A: {report['excluded_a']}, B: {report['excluded_b']}\nwrote {output}")
+    if not agreed["highlights"]:
+        print("No agreed highlights: this file is not ready for scoring.")
+    return 0
+
+
 def cmd_kills(args: argparse.Namespace) -> int:
     from .scoreboard import extract_kills
 
@@ -204,6 +225,12 @@ def build_parser() -> argparse.ArgumentParser:
                          help="fraction of a clip that must overlap a label")
     p_score.add_argument("--json", help="write the metrics to this path")
     p_score.set_defaults(func=cmd_score)
+
+    p_agree = sub.add_parser("agree", help="combine two independent human annotation files")
+    p_agree.add_argument("left", help="first person's annotation JSON")
+    p_agree.add_argument("right", help="second person's annotation JSON")
+    p_agree.add_argument("-o", "--out", required=True, help="new ground-truth JSON to create")
+    p_agree.set_defaults(func=cmd_agree)
 
     p_kills = sub.add_parser("kills", help="read the in-game kill counter with OCR")
     p_kills.add_argument("video")

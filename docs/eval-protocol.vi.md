@@ -44,6 +44,44 @@ cả bạn của hai tuần sau.
 
 ## Các chỉ số
 
+### Công cụ gán nhãn local
+
+Bấm đúp **Start-Labeling.cmd**, hoặc chạy:
+
+```powershell
+.\scripts\start-local.ps1 -Annotate
+```
+
+Giao diện ở [localhost:8503](http://localhost:8503), tách khỏi editor ở cổng 8501.
+Mỗi người nhập mã riêng (ví dụ `A`, `B`), nhập đường dẫn tới **video gốc trên máy**
+rồi bấm **Mở video gốc**. Không cần upload video; không có đề xuất tự động hay
+nhãn của người kia trên màn hình. Xem nguồn, nhập mốc đầu/cuối, **Thêm highlight**,
+rồi **Lưu nhãn của tôi**. Sửa mốc hoặc bỏ chọn Giữ trong bảng rồi áp dụng trước khi lưu.
+Lưu trước khi đổi video/người chấm; tải file của chính mình trong **Mở lại nhãn của tôi**
+để tiếp tục. Nhãn trống lưu được để ghi nhận chưa tìm thấy highlight, không tự trở
+thành ground truth đã hoàn tất.
+
+Hai người phải thực sự xem và chấm độc lập; hai mã khác nhau không chứng minh
+được điều đó. Chỉ sau khi cả hai hoàn tất, gom hai file vào `data/labels/` và chạy:
+
+```powershell
+beatcut agree data\labels\match_02.A.annotations.json data\labels\match_02.B.annotations.json -o data\labels\match_02.json
+```
+
+Lệnh kiểm tra cùng nội dung video bằng SHA-256 và khác mã người chấm. Một cặp được
+giữ khi **cả mốc đầu và cuối lệch không quá 2 giây**, và mỗi nhãn chỉ có đúng một
+đối tác phù hợp ở bộ còn lại. Cặp mơ hồ hoặc không khớp bị loại; lệnh báo số giữ/bỏ.
+Mốc đồng thuận là trung bình của hai mốc. Lệnh không ghi đè file có sẵn; chọn tên
+đầu ra mới khi chạy lại. File kết quả đọc được trực tiếp bằng `beatcut score`.
+Không có cặp đồng thuận thì chưa thể chấm precision@5 cho VOD đó bằng CLI hiện tại.
+
+Giữ hai file nhãn gốc; JSON chỉ chứa tên video, hash, thời lượng và mốc nhãn, không
+chứa video hay đường dẫn trên máy. Không nhập project, manifest hay các clip do
+BeatCut đề xuất làm nhãn độc lập. Công cụ này chưa thay thế việc chọn đủ 10 VOD
+10–60 phút và chốt dev/test theo bước 5 ở trên.
+
+### Chấm kết quả
+
 Chạy `beatcut analyze VIDEO MUSIC --json out.json`, rồi chấm kết quả chọn so với
 nhãn:
 

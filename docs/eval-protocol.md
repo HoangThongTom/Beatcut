@@ -44,6 +44,36 @@ reproduce, including you in two weeks.
 
 ## Metrics
 
+### Local independent labeling
+
+On Windows, double-click **Start-Labeling.cmd** or run
+`scripts/start-local.ps1 -Annotate`. Open [localhost:8503](http://localhost:8503),
+enter your annotator ID and a local path to the original video, then open it.
+Add source start/end intervals, apply table corrections/removals, and save your
+own annotation JSON before switching videos or IDs. Resume only your own file.
+This screen shows no automatic predictions or the other person's ranges.
+Videos are read locally; no video upload is required. Empty labels can be saved.
+
+After both people independently finish, combine their files:
+
+```powershell
+beatcut agree data\labels\match_02.A.annotations.json data\labels\match_02.B.annotations.json -o data\labels\match_02.json
+```
+
+The command requires matching video SHA-256 and duration, and distinct annotator
+IDs. Distinct IDs do not establish actual independence; people must follow the
+protocol. Both endpoints must be within 2 seconds. Only mutually unique pairs
+are kept; ambiguous/unmatched labels are excluded and counted. Agreed endpoints
+are the averages of the two annotations. Original files are never overwritten;
+choose a fresh output path to rerun. The result is accepted by `beatcut score`.
+No agreed highlights means the current score CLI cannot evaluate that VOD.
+
+Keep the raw annotations. Files contain source identity and labels, not media or
+local paths. Projects/predictions are not independent annotations and cannot be
+imported by this tool. The 10-VOD, 6-dev/4-test requirement above still applies.
+
+### Scoring
+
 Run `beatcut analyze VIDEO MUSIC --json out.json`, then score the selection
 against the labels:
 

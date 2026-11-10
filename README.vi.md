@@ -169,6 +169,7 @@ beatcut analyze VIDEO MUSIC        # in ra các clip được chọn, không ren
 beatcut run VIDEO MUSIC -o OUT     # chạy toàn bộ pipeline
 beatcut kills VIDEO --box x,y,w,h  # OCR bộ đếm hạ gục trong game
 beatcut score LABELS SELECTION     # precision@k so với nhãn
+beatcut agree A.json B.json -o GT.json # ghép nhãn hai người (±2 giây)
 beatcut version
 ```
 
@@ -236,6 +237,12 @@ outputs/         montage đã render — gitignored
 ```
 
 ## Đánh giá
+
+Bấm đúp **Start-Labeling.cmd** để mở công cụ gán nhãn độc lập tại
+[localhost:8503](http://localhost:8503). Mỗi người mở video gốc bằng đường dẫn
+trên máy, ghi mốc highlight và lưu file nhãn riêng. Công cụ không hiển thị đề xuất
+montage. Dùng `beatcut agree` để ghép nhãn hai người trước khi chấm điểm; xem
+[hướng dẫn gán nhãn](docs/eval-protocol.vi.md#công-cụ-gán-nhãn-local).
 
 `tests/` phủ phần logic thuần (chọn đoạn, bắt dính nhịp, config). Đo xem *các
 clip được chọn có tốt không* là bài toán khác, và nó cần nhãn của con người.

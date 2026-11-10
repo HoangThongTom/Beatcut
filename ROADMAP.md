@@ -77,6 +77,7 @@ crop has to be tight.
 
 The editor extension is tracked separately below; the evaluation checklist still applies.
 
+- [x] Independent labeling UI and two-person agreement tooling (±2 seconds)
 - [ ] Run the full [eval protocol](docs/eval-protocol.md) over 10 VODs, split
       dev/test
 - [ ] Error analysis: ten false positives, one sentence of explanation each
