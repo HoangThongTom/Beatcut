@@ -22,7 +22,9 @@ if _SRC.is_dir() and str(_SRC) not in sys.path:
 import streamlit as st  # noqa: E402
 import streamlit.components.v1 as components  # noqa: E402
 
-from beatcut import editing, pipeline  # noqa: E402
+from beatcut import config as config_module  # noqa: E402
+from beatcut import editing, pipeline, render  # noqa: E402
+from beatcut import project as project_module  # noqa: E402
 
 # Cloud can rerun this entry point before refreshing an already-imported source module.
 for module, helper in ((editing, "reorder_rows"), (editing, "apply_timeline"),
@@ -30,6 +32,13 @@ for module, helper in ((editing, "reorder_rows"), (editing, "apply_timeline"),
                        (pipeline, "music_beats")):
     if not hasattr(module, helper):
         importlib.invalidate_caches()
+        importlib.reload(module)
+
+# A live session may predate the title/transition fields. Refresh consumers too:
+# they hold direct references to Config and the old render function signatures.
+if not {"title", "transition_s"} <= set(config_module.Config.__dataclass_fields__):
+    importlib.invalidate_caches()
+    for module in (config_module, render, project_module, pipeline):
         importlib.reload(module)
 
 from beatcut.config import Config  # noqa: E402
