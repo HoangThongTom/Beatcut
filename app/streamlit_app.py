@@ -138,13 +138,19 @@ if st.button("Render montage", type="primary", use_container_width=True):
             music_start_s=float(music_start),
             max_segments=max(10, math.ceil(target_duration / 2.5)),
         )
-        with st.spinner(f"Rendering {info.duration_s:.0f}s of footage…"):
+        with st.status("Preparing your montage…", expanded=True) as status:
+            def show_progress(message):
+                status.update(label=message)
+                status.write(message)
+
             output = job / "montage.mp4"
             try:
-                manifest = run(video_path, music_path, output, cfg)
+                manifest = run(video_path, music_path, output, cfg, progress=show_progress)
             except Exception as exc:  # noqa: BLE001 - shown to the user
+                status.update(label="Could not finish the montage", state="error")
                 st.error(f"Render failed: {exc}")
                 st.stop()
+            status.update(label="Montage ready — preview and download below", state="complete")
 
         st.session_state["last_montage"] = {
             "data": output.read_bytes(),

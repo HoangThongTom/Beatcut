@@ -29,6 +29,8 @@ Bạn cũng có thể tải [video demo MP4](docs/assets/montage-demo.mp4) trong
 Trên web demo, tải gameplay và nhạc lên, chọn độ dài montage và mốc bắt đầu nhạc
 theo giây, rồi nghe thử trước khi tạo video. Ví dụ, nhập 25 để dùng nhạc từ 0:25.
 Thời lượng thực tế có thể chênh nhẹ để độ dài clip khớp ô nhịp.
+Khi xử lý, demo hiển thị bước hiện tại, dữ liệu phân tích được dùng lại và số
+đoạn highlight đã render xong.
 
 ## Vấn đề
 

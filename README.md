@@ -29,6 +29,8 @@ The [MP4 demo](docs/assets/montage-demo.mp4) is also included in this repository
 In the web demo, upload gameplay and music, set the montage duration and music
 start in seconds, then preview the music before rendering. For example, 25 starts
 the music at 0:25. Final duration can vary to keep clips on musical bars.
+During rendering, the demo shows the current stage, reused analysis, and the
+number of highlight clips completed.
 
 ## The problem
 

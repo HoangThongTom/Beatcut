@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -54,9 +55,11 @@ def analyze(
     music: str | Path,
     config: Config | None = None,
     work_dir: str | Path | None = None,
+    progress: Callable[[str], None] | None = None,
 ) -> Analysis:
     """Pick the highlight segments without rendering anything."""
     cfg = config or Config()
+    report = progress or (lambda message: None)
     video = Path(video)
     music = Path(music)
 
@@ -68,6 +71,7 @@ def analyze(
     work = Path(work_dir) if work_dir is not None else Path("outputs/analysis")
     work.mkdir(parents=True, exist_ok=True)
 
+    report("Reading gameplay information…")
     info = probe(video)
 
     cache_dir = Path(cfg.cache_dir)
@@ -76,9 +80,11 @@ def analyze(
     cached = cache.load(cache_dir, video_key) if cfg.use_cache else None
 
     if cached is not None:
+        report("Reusing saved gameplay analysis.")
         curves, _ = cached
         motion_times = curves["motion"][0]
     else:
+        report("Analyzing gameplay motion…")
         curves = {}
         motion_times, motion_values = motion_energy_curve(
             str(video), info, cfg.sample_fps, cfg.frame_width
@@ -86,6 +92,7 @@ def analyze(
         curves["motion"] = (motion_times, motion_values)
 
         if info.has_audio:
+            report("Analyzing gameplay audio…")
             gameplay_wav = extract_audio(video, work / "gameplay_audio.wav", cfg.audio_sr)
             curves["audio"] = audio_energy_curve(str(gameplay_wav), cfg.audio_sr)
 
@@ -95,10 +102,13 @@ def analyze(
     cached_music = cache.load(cache_dir, music_key) if cfg.use_cache else None
     grid = cached_music[1] if cached_music is not None else None
     if grid is None:
+        report("Analyzing the music beat…")
         music_wav = extract_audio(music, work / "music.wav", cfg.audio_sr)
         grid = detect_beats(str(music_wav), cfg.audio_sr, cfg.beats_per_bar)
         if cfg.use_cache:
             cache.save(cache_dir, music_key, {}, grid)
+    else:
+        report("Reusing saved music beats.")
 
     weights = {"motion": cfg.motion_weight, "audio": cfg.audio_weight}
     fused = fuse(motion_times, curves, weights)
@@ -110,16 +120,20 @@ def analyze(
             cache.load_kills(cache_dir, kill_cache_key) if cfg.use_cache else None
         )
         if kill_times is None:
+            report("Detecting gameplay kills…")
             from .scoreboard import extract_kills
 
             events = extract_kills(video, tuple(cfg.kill_crop), 2.0)
             kill_times = [event.time for event in events]
             if cfg.use_cache:
                 cache.save_kills(cache_dir, kill_cache_key, kill_times)
+        else:
+            report("Reusing saved kill detections.")
         fused = boost_curve(
             motion_times, fused, kill_times, cfg.kill_window_s, cfg.kill_boost
         )
 
+    report("Selecting highlights and aligning cuts to the music…")
     candidates = window_scores(motion_times, fused, cfg.window_s, cfg.stride_s)
     dropped = 0
     if cfg.skip_frame_drops and candidates:
@@ -200,9 +214,11 @@ def run(
     config: Config | None = None,
     work_dir: str | Path | None = None,
     keep_work: bool = False,
+    progress: Callable[[str], None] | None = None,
 ) -> dict:
     """Analyze, render the montage, and write a manifest next to it."""
     cfg = config or Config()
+    report = progress or (lambda message: None)
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
@@ -210,26 +226,30 @@ def run(
     work = _work_dir(out, work_dir)
     work.mkdir(parents=True, exist_ok=True)
 
-    analysis = analyze(video, music, cfg, work_dir=work)
+    analysis = analyze(video, music, cfg, work_dir=work, progress=progress)
 
     keep_game = cfg.keep_game_audio and analysis.video.has_audio
-    parts = [
-        cut(
+    parts = []
+    total = len(analysis.segments)
+    report(f"Rendering highlights: 0/{total} completed.")
+    for index, segment in enumerate(analysis.segments):
+        parts.append(cut(
             video,
             segment,
             work / f"part_{index:02d}.mp4",
             cfg.crf,
             cfg.preset,
             with_audio=keep_game,
-        )
-        for index, segment in enumerate(analysis.segments)
-    ]
+        ))
+        report(f"Rendering highlights: {index + 1}/{total} completed.")
+    report("Joining highlight clips…")
     silent = concat(parts, work / "montage_silent.mp4")
 
     music_start = cfg.music_start_s
     if music_start is None:
         music_start = analysis.grid.downbeats[0] if analysis.grid.downbeats else 0.0
 
+    report("Mixing audio and exporting the MP4…")
     if keep_game:
         mux_mixed(silent, music, out, music_start, cfg.game_audio_volume, cfg.music_volume)
     else:
@@ -254,4 +274,5 @@ def run(
         for leftover in (silent, work / "gameplay_audio.wav", work / "music.wav"):
             Path(leftover).unlink(missing_ok=True)
 
+    report("Montage ready.")
     return manifest

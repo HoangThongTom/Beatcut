@@ -27,8 +27,14 @@ def test_changing_music_reuses_gameplay_and_empty_kill_results(tmp_path, monkeyp
     monkeypatch.setattr("beatcut.scoreboard.extract_kills", kills)
     cfg = Config(cache_dir=str(tmp_path / "cache"), skip_frame_drops=False,
                  kill_crop=[1, 1, 10, 10], target_duration_s=12)
-    first = analyze(video, songs[0], cfg, tmp_path / "work")
-    second = analyze(video, songs[1], cfg, tmp_path / "work")
+    messages = []
+    first = analyze(video, songs[0], cfg, tmp_path / "work", progress=messages.append)
+    assert "Analyzing gameplay motion…" in messages
+    messages.clear()
+    second = analyze(video, songs[1], cfg, tmp_path / "work", progress=messages.append)
+    assert "Reusing saved gameplay analysis." in messages
+    assert "Reusing saved kill detections." in messages
+    assert "Analyzing the music beat…" in messages
     assert first.segments == second.segments
     assert motion.call_count == audio.call_count == kills.call_count == 1
     assert beats.call_count == 2
