@@ -19,18 +19,18 @@ from .config import Config
 from .types import BeatGrid
 
 
-def fingerprint(path: str | Path, cfg: Config) -> str:
+def fingerprint(path: str | Path, cfg: Config, kind: str = "video") -> str:
     """Identify a source plus the settings that make its curves different."""
     stat = Path(path).stat()
     raw = "|".join(
         [
             str(Path(path).resolve()),
             str(stat.st_size),
-            str(int(stat.st_mtime)),
-            f"{cfg.sample_fps}",
-            f"{cfg.frame_width}",
+            str(stat.st_mtime_ns),
+            kind,
+            *([f"{cfg.sample_fps}", f"{cfg.frame_width}"] if kind == "video" else []),
             f"{cfg.audio_sr}",
-            f"{cfg.beats_per_bar}",
+            *([f"{cfg.beats_per_bar}"] if kind == "music" else []),
         ]
     )
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
@@ -65,7 +65,7 @@ def save_kills(cache_dir: str | Path, key: str, times: list[float]) -> None:
 def load(
     cache_dir: str | Path,
     key: str,
-) -> tuple[dict[str, tuple[np.ndarray, np.ndarray]], BeatGrid] | None:
+) -> tuple[dict[str, tuple[np.ndarray, np.ndarray]], BeatGrid | None] | None:
     path = Path(cache_dir) / f"{key}.npz"
     if not path.exists():
         return None
@@ -79,14 +79,16 @@ def load(
         curves["motion"] = (data["motion_times"], data["motion_values"])
     if "audio_times" in data:
         curves["audio"] = (data["audio_times"], data["audio_values"])
-    if "motion" not in curves:
+    if not curves and "tempo" not in data:
+        data.close()
         return None
 
     grid = BeatGrid(
         tempo=float(data["tempo"]),
         beats=[float(v) for v in data["beats"]],
         downbeats=[float(v) for v in data["downbeats"]],
-    )
+    ) if "tempo" in data else None
+    data.close()
     return curves, grid
 
 
@@ -94,7 +96,7 @@ def save(
     cache_dir: str | Path,
     key: str,
     curves: dict[str, tuple[np.ndarray, np.ndarray]],
-    grid: BeatGrid,
+    grid: BeatGrid | None = None,
 ) -> None:
     path = Path(cache_dir)
     path.mkdir(parents=True, exist_ok=True)
@@ -102,7 +104,7 @@ def save(
         "tempo": np.asarray(grid.tempo, dtype=float),
         "beats": np.asarray(grid.beats, dtype=float),
         "downbeats": np.asarray(grid.downbeats, dtype=float),
-    }
+    } if grid is not None else {}
     for name, (times, values) in curves.items():
         payload[f"{name}_times"] = np.asarray(times, dtype=float)
         payload[f"{name}_values"] = np.asarray(values, dtype=float)

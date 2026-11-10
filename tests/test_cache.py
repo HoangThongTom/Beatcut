@@ -50,3 +50,15 @@ def test_cache_round_trip(tmp_path: Path):
 
 def test_missing_cache_returns_none(tmp_path: Path):
     assert load(tmp_path, "nope") is None
+
+
+def test_cache_keys_use_only_relevant_settings(tmp_path):
+    source = tmp_path / "source"
+    source.write_bytes(b"source")
+    assert fingerprint(source, Config()) == fingerprint(source, Config(beats_per_bar=3))
+    assert fingerprint(source, Config(), "music") == fingerprint(
+        source, Config(sample_fps=2), "music"
+    )
+    assert fingerprint(source, Config(), "music") != fingerprint(
+        source, Config(beats_per_bar=3), "music"
+    )

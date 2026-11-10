@@ -10,6 +10,7 @@ Run locally with:  streamlit run app/streamlit_app.py
 
 from __future__ import annotations
 
+import hashlib
 import math
 import os
 import sys
@@ -92,11 +93,19 @@ if st.button("Render montage", type="primary", use_container_width=True):
     if not video_file or not music_file:
         st.error("Upload both a clip and a music track.")
     else:
-        job = Path(tempfile.mkdtemp(prefix="beatcut-"))
-        video_path = job / f"video{Path(video_file.name).suffix or '.mp4'}"
-        music_path = job / f"music{Path(music_file.name).suffix or '.mp3'}"
-        video_path.write_bytes(video_file.getbuffer())
-        music_path.write_bytes(music_file.getbuffer())
+        if "work_dir" not in st.session_state:
+            st.session_state["work_dir"] = tempfile.mkdtemp(prefix="beatcut-")
+        job = Path(st.session_state["work_dir"])
+        paths = []
+        for upload in (video_file, music_file):
+            content = upload.getvalue()
+            digest = hashlib.sha256(content).hexdigest()
+            path = job / f"{digest}{Path(upload.name).suffix}"
+            # Keep the path and modification time stable across renders in this session.
+            if not path.exists():
+                path.write_bytes(content)
+            paths.append(path)
+        video_path, music_path = paths
 
         try:
             info = probe(video_path)

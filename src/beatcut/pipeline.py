@@ -71,11 +71,12 @@ def analyze(
     info = probe(video)
 
     cache_dir = Path(cfg.cache_dir)
-    cache_key = f"{cache.fingerprint(video, cfg)}-{cache.fingerprint(music, cfg)}"
-    cached = cache.load(cache_dir, cache_key) if cfg.use_cache else None
+    video_key = cache.fingerprint(video, cfg)
+    music_key = cache.fingerprint(music, cfg, "music")
+    cached = cache.load(cache_dir, video_key) if cfg.use_cache else None
 
     if cached is not None:
-        curves, grid = cached
+        curves, _ = cached
         motion_times = curves["motion"][0]
     else:
         curves = {}
@@ -88,22 +89,27 @@ def analyze(
             gameplay_wav = extract_audio(video, work / "gameplay_audio.wav", cfg.audio_sr)
             curves["audio"] = audio_energy_curve(str(gameplay_wav), cfg.audio_sr)
 
+        if cfg.use_cache:
+            cache.save(cache_dir, video_key, curves)
+
+    cached_music = cache.load(cache_dir, music_key) if cfg.use_cache else None
+    grid = cached_music[1] if cached_music is not None else None
+    if grid is None:
         music_wav = extract_audio(music, work / "music.wav", cfg.audio_sr)
         grid = detect_beats(str(music_wav), cfg.audio_sr, cfg.beats_per_bar)
-
         if cfg.use_cache:
-            cache.save(cache_dir, cache_key, curves, grid)
+            cache.save(cache_dir, music_key, {}, grid)
 
     weights = {"motion": cfg.motion_weight, "audio": cfg.audio_weight}
     fused = fuse(motion_times, curves, weights)
 
     kill_times: list[float] = []
     if cfg.kill_crop:
-        kill_cache_key = cache.kill_key(cache_key, cfg.kill_crop)
+        kill_cache_key = cache.kill_key(video_key, cfg.kill_crop)
         kill_times = (
             cache.load_kills(cache_dir, kill_cache_key) if cfg.use_cache else None
-        ) or []
-        if not kill_times:
+        )
+        if kill_times is None:
             from .scoreboard import extract_kills
 
             events = extract_kills(video, tuple(cfg.kill_crop), 2.0)
