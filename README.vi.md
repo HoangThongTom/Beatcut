@@ -220,11 +220,10 @@ Con số trung thực cần điền tiếp theo là precision@5 so với nhãn d
 ```
 src/beatcut/     thư viện pipeline (import được, không tác dụng phụ từ CLI)
 app/streamlit_app.py  demo Streamlit (đích deploy miễn phí)
-app/ui.py        demo Gradio (giữ cho Hugging Face Spaces nếu có PRO)
 app/api.py       wrapper FastAPI tối giản (M3)
 configs/         config YAML
-scripts/         bootstrap.ps1
-tests/           unit test thuần hàm (không ffmpeg, không model)
+scripts/         cài đặt, mở giao diện local và tạo footage tổng hợp
+tests/           kiểm thử pipeline/editor và tương tác timeline
 docs/            kiến trúc, quy trình đánh giá
 data/            footage gốc và nhãn — gitignored
 outputs/         montage đã render — gitignored

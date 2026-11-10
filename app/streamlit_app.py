@@ -1,11 +1,6 @@
-"""Streamlit demo — the deployment that stays free.
+"""BeatCut editor for local use and Streamlit Community Cloud.
 
-Hugging Face now only offers ZeroGPU to free accounts, and ZeroGPU refuses to
-start a Space without a @spaces.GPU function; spending GPU quota on a CPU
-pipeline would be the wrong trade. Streamlit Community Cloud hosts this straight
-from the public GitHub repo with no card.
-
-Run locally with:  streamlit run app/streamlit_app.py
+Run locally with Start-BeatCut.cmd, or streamlit run app/streamlit_app.py.
 """
 
 from __future__ import annotations

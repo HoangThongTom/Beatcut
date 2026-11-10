@@ -61,7 +61,7 @@ trên chữ toàn màn hình đọc cả icon thành chữ cái, nên phải cro
 - [x] Đóng gói API bằng Docker (kiểm tra local được ghi trong [deploy/README.md](deploy/README.md))
 - [x] GitHub Actions: `ruff check` + `pytest` trên mỗi push vào main
 - [x] Giới hạn độ dài upload; render hiện vẫn đồng bộ
-- [x] Deploy demo lên Streamlit Community Cloud; giữ cấu hình Spaces để tham khảo
+- [x] Deploy demo lên Streamlit Community Cloud
 - [ ] Export ONNX, benchmark `onnxruntime` so với PyTorch (FPS, ms/frame)
 
 **Xong khi:** có link demo bấm được, và CI xanh.

@@ -42,6 +42,9 @@ outputs/*
 scratch/
 tools/
 install.log
+# Local session uploads and test temporary directories.
+/beatcut-*/
+/pytest-of-*/
 
 # --- OS / editors ---
 .DS_Store

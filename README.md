@@ -211,11 +211,10 @@ The honest number to fill in next is precision@5 against labelled highlights.
 ```
 src/beatcut/     pipeline library (importable, no CLI side effects)
 app/streamlit_app.py  Streamlit demo (the free deploy target)
-app/ui.py        Gradio demo (kept for Hugging Face Spaces with PRO)
 app/api.py       minimal FastAPI wrapper (M3)
 configs/         YAML run configs
-scripts/         bootstrap.ps1
-tests/           pure-function unit tests (no ffmpeg, no models)
+scripts/         setup, local launcher and synthetic media fixtures
+tests/           pipeline/editor tests and timeline interaction tests
 docs/            architecture, evaluation protocol
 data/            raw footage and labels — gitignored
 outputs/         rendered montages — gitignored

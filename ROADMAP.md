@@ -63,7 +63,7 @@ crop has to be tight.
 - [x] Docker API packaging (local verification documented in [deploy/README.md](deploy/README.md))
 - [x] GitHub Actions: `ruff check` + `pytest` on every push to main
 - [x] Cap upload duration; rendering remains synchronous
-- [x] Deploy a demo to Streamlit Community Cloud; retain the Spaces configuration
+- [x] Deploy a demo to Streamlit Community Cloud
 - [ ] Export ONNX and benchmark `onnxruntime` against PyTorch (FPS, ms/frame)
 
 **Done when:** there is a demo link you can click, and CI is green.

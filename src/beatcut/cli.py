@@ -51,29 +51,6 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
         except ImportError:
             healthy &= _check(f"import {module}", False, "run scripts/bootstrap.ps1")
 
-    for module, hint in (
-        ("cv2", "extra [cv] - needed from M2"),
-        ("torch", "extra [cv] - needed from M2"),
-        ("ultralytics", "extra [cv] - needed from M2"),
-    ):
-        try:
-            __import__(module)
-            print(f"[INFO] {module} available")
-        except ImportError:
-            print(f"[INFO] {module} missing ({hint})")
-
-    try:
-        import torch
-
-        if torch.cuda.is_available():
-            name = torch.cuda.get_device_name(0)
-            vram = torch.cuda.get_device_properties(0).total_memory / 1024**3
-            print(f"[INFO] cuda: {name} ({vram:.1f} GiB)")
-        else:
-            print("[INFO] cuda: not available, training would fall back to CPU")
-    except ImportError:
-        pass
-
     print("\nready" if healthy else "\nnot ready - fix the FAIL lines above")
     return 0 if healthy else 1
 
