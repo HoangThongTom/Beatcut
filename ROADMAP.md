@@ -99,9 +99,10 @@ what you built and how you measured it.
 - [x] Drag-and-drop timeline for clip order, with keyboard/touch arrow controls
 - [x] Timeline trim handles and optional beat snapping for manual edits
 - [x] Music/game volume controls, game mute, saved settings and undo
-- [ ] Text and transitions
+- [x] One text overlay: Unicode, timing, position/color/size, saved settings and undo
+- [ ] Transitions
 
-Next editor milestone: text, followed by transitions. The core research milestone is
+Next editor milestone: transitions. The core research milestone is
 independently labelled VODs and precision@5 as defined in the evaluation protocol.
 
 ## Your hardware (RTX 2050, 4 GB)

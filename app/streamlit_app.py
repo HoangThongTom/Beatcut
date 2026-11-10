@@ -41,6 +41,7 @@ from beatcut.editing import apply_timeline, rows_to_segments  # noqa: E402
 from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
 from beatcut.project import load_project, save_project  # noqa: E402
+from beatcut.titles import validate_title  # noqa: E402
 
 LOCAL_MODE = os.environ.get("BEATCUT_LOCAL") == "1"
 MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "3600" if LOCAL_MODE else "60"))
@@ -323,6 +324,9 @@ if "edit_project" in st.session_state:
     if new_clips is not None:
         try:
             reordered = apply_timeline(project["rows"], new_clips, project["duration"])
+            validate_title(project["config"].get("title"), sum(
+                s.duration for s in rows_to_segments(reordered, project["duration"])
+            ))
         except ValueError as exc:
             st.error(str(exc))
         else:
@@ -349,7 +353,9 @@ if "edit_project" in st.session_state:
         )
         if st.form_submit_button("Apply edits"):
             try:
-                rows_to_segments(edited_rows, project["duration"])
+                changed_selection = rows_to_segments(edited_rows, project["duration"])
+                validate_title(project["config"].get("title"),
+                               sum(s.duration for s in changed_selection))
             except ValueError as exc:
                 st.error(str(exc))
             else:
@@ -383,6 +389,50 @@ if "edit_project" in st.session_state:
     st.caption(f"Applied mix: music {project['config']['music_volume']:.2f}x · "
                + (f"game {project['config']['game_audio_volume']:.2f}x"
                   if project["config"]["keep_game_audio"] else "game muted"))
+    st.markdown("**Text overlay**")
+    montage_length = sum(s.duration for s in rows_to_segments(project["rows"], project["duration"]))
+    title = project["config"].get("title") or {
+        "text": "", "start": 0.0, "end": min(3.0, montage_length),
+        "position": "bottom", "color": "#FFFFFF", "size": 5.0,
+    }
+    st.caption("Add one title to the finished montage. Times start at 0 in the montage. "
+               "Apply, then export to see it. Clear the text and apply to remove it.")
+    with st.form(f"title_{st.session_state['edit_revision']}"):
+        title_text = st.text_area("Title text", value=title["text"], max_chars=120)
+        title_start_col, title_end_col = st.columns(2)
+        title_start = title_start_col.number_input(
+            "Title starts at (s)", min_value=0.0, value=float(title["start"]), step=0.1,
+        )
+        title_end = title_end_col.number_input(
+            "Title ends at (s)", min_value=0.0, value=float(title["end"]), step=0.1,
+        )
+        position_col, color_col, size_col = st.columns(3)
+        positions = ["top", "center", "bottom"]
+        title_position = position_col.selectbox(
+            "Title position", positions, index=positions.index(title["position"]),
+        )
+        title_color = color_col.color_picker("Title color", value=title["color"])
+        title_size = size_col.slider("Title size (%)", 2.0, 8.0, float(title["size"]), step=0.5)
+        if st.form_submit_button("Apply title"):
+            new_title = {"text": title_text, "start": title_start, "end": title_end,
+                         "position": title_position, "color": title_color, "size": title_size}
+            if not title_text.strip():
+                new_title = None
+            try:
+                validate_title(new_title, montage_length)
+            except ValueError as exc:
+                st.error(str(exc))
+            else:
+                if new_title != project["config"].get("title"):
+                    remember_edit(project)
+                    project["config"]["title"] = new_title
+                    st.session_state["edit_revision"] += 1
+                    st.rerun()
+    if project["config"].get("title"):
+        current_title = project["config"]["title"]
+        st.caption(f"Applied title: {current_title['start']:.1f}–{current_title['end']:.1f}s · "
+                   f"{current_title['position']}")
+        st.text(current_title["text"])
     if st.button("Undo edit", disabled=not project["history"]):
         previous = project["history"].pop()
         # Existing browser sessions can still contain row-only checkpoints.

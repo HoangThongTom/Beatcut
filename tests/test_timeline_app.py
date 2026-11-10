@@ -113,3 +113,36 @@ def test_timeline_trim_save_undo_snap_and_export(tmp_path, monkeypatch):
     assert not app.error
     assert captured[0].music_volume == 0.25
     assert captured[0].keep_game_audio is False
+
+    next(t for t in app.text_area if t.label == "Title text").set_value("Pha xử lý đẹp!")
+    next(n for n in app.number_input if n.label == "Title ends at (s)").set_value(2.0)
+    next(b for b in app.button if b.label == "Apply title").click().run()
+    assert not app.exception
+    title_saved = load_project(save_project(app.session_state["edit_project"]))
+    assert title_saved["settings"]["title"]["text"] == "Pha xử lý đẹp!"
+    next(b for b in app.button if b.label == "Export edited MP4").click().run()
+    assert not app.exception
+    assert captured[-1].title["end"] == 2.0
+    pending.append([{"id": 1, "start": 11.1, "end": 11.6},
+                    {"id": 0, "start": 1.2, "end": 1.7}])
+    app.run()
+    assert not app.exception
+    assert app.error
+    assert app.session_state["edit_project"]["rows"] == title_saved["rows"]
+    next(t for t in app.text_area if t.label == "Title text").set_value("")
+    next(b for b in app.button if b.label == "Apply title").click().run()
+    assert not app.exception
+    assert app.session_state["edit_project"]["config"]["title"] is None
+    next(b for b in app.button if b.label == "Undo edit").click().run()
+    assert app.session_state["edit_project"]["config"]["title"]["end"] == 2.0
+    next(b for b in app.button if b.label == "Undo edit").click().run()
+    assert not app.exception
+    assert app.session_state["edit_project"]["config"].get("title") is None
+    assert app.session_state["edit_project"]["config"]["music_volume"] == 0.25
+
+    next(t for t in app.text_area if t.label == "Title text").set_value("Invalid title time")
+    next(n for n in app.number_input if n.label == "Title ends at (s)").set_value(99.0)
+    next(b for b in app.button if b.label == "Apply title").click().run()
+    assert not app.exception
+    assert app.error
+    assert app.session_state["edit_project"]["config"].get("title") is None

@@ -55,6 +55,12 @@ In **Audio mix**, set music and game volume from 0 (mute) to 2 (boost), or untic
 the result. Applied audio settings are saved in the project and restored by
 **Undo edit** alongside clip edits. Game sound requires audio in the original footage.
 
+**Text overlay** adds one title of up to 120 characters, including Vietnamese.
+Set its start/end on the final montage, top/center/bottom position, color and size,
+then **Apply title → Export edited MP4**. Clear the text and apply to remove it.
+Titles are saved and undoable; shorten their end time before trimming the montage
+below that point. Long text wraps to fit the frame.
+
 For full-match footage on Windows, install `requirements.txt` in the project's
 `.venv`, then double-click **Start-BeatCut.cmd**. The local interface opens at
 [localhost:8501](http://localhost:8501), accepts gameplay up to 60 minutes and

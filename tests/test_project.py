@@ -29,6 +29,18 @@ def test_project_round_trip_excludes_server_paths_and_cache_config():
     assert b"cache_dir" not in raw
 
 
+def test_project_saves_title_and_rejects_times_beyond_edited_length():
+    original = project()
+    original["config"]["title"] = {
+        "text": "Hạ gục!", "start": 1, "end": 3, "position": "top",
+        "color": "#67E8DF", "size": 4,
+    }
+    assert load_project(save_project(original))["settings"]["title"] == original["config"]["title"]
+    original["config"]["title"]["end"] = 6
+    with pytest.raises(ValueError):
+        save_project(original)
+
+
 @pytest.mark.parametrize("change", [
     lambda p: p.update(version=99),
     lambda p: p.update(rows=[]),

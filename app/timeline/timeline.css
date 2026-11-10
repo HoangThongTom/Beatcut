@@ -1,8 +1,9 @@
 :root { color-scheme: dark; font-family: system-ui, sans-serif; color: #f1f0fa; }
-body { margin: 0; background: #0c0c14; }
+body { margin: 0; background: #302052; }
 p { font-size: 13px; color: #b9b6cd; line-height: 1.5; margin: 0 0 14px; }
 #track { display: flex; gap: 8px; overflow-x: auto; padding: 12px;
-    background: #171724; border: 1px solid #34324d; border-radius: 12px; }
+    background: linear-gradient(110deg, #493267, #24545c);
+    border: 1px solid #9d82c2; border-radius: 12px; }
 .clip { min-width: 190px; flex-shrink: 0; border-radius: 8px; padding: 12px;
     background: #554477; border: 1px solid #a78bfa; cursor: grab; }
 .clip.dragging { opacity: .5; }

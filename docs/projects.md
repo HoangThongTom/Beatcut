@@ -40,5 +40,14 @@ the same undo history as clip edits, and reopen with the saved project. Export
 an edited MP4 to hear the applied mix; sliders do not alter an already rendered
 preview. Music volume also applies when game audio is disabled or absent.
 
+**Text overlay** saves one optional title (up to 120 characters) with its time
+range in the final montage, position, color and relative size. Apply the title
+before saving/exporting; clear its text and apply to remove it. Titles use the
+same undo history as audio and clip edits. Older version-1 projects without a
+title still open. A title must end within the edited montage; shorten its timing
+before trimming the montage below that point. Text is burned into the exported
+video using FFmpeg's drawtext filter, with a second video encode. A font supporting
+Vietnamese is selected from Arial on Windows or DejaVu Sans on Linux when available.
+
 A saved selection is not an independent highlight annotation
 for the evaluation protocol: it was derived from BeatCut's proposed highlights.

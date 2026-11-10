@@ -17,9 +17,10 @@ from .beats import align_segment, bar_duration, detect_beats, quantize_duration
 from .config import Config
 from .editing import validate_segments
 from .media import extract_audio, frame_gaps, probe
-from .render import concat, cut, mux_mixed, mux_music
+from .render import concat, cut, mux_mixed, mux_music, overlay_title
 from .scoring import audio_energy_curve, boost_curve, fuse, motion_energy_curve
 from .select import select_segments, window_scores
+from .titles import validate_title
 from .types import BeatGrid, Segment, VideoInfo
 
 
@@ -244,6 +245,7 @@ def run(
         info = probe(video)
         analysis = Analysis(info, BeatGrid(), validate_segments(segments, info.duration_s))
 
+    validate_title(cfg.title, sum(segment.duration for segment in analysis.segments))
     keep_game = cfg.keep_game_audio and analysis.video.has_audio
     parts = []
     total = len(analysis.segments)
@@ -260,6 +262,10 @@ def run(
         report(f"Rendering highlights: {index + 1}/{total} completed.")
     report("Joining highlight clips…")
     silent = concat(parts, work / "montage_silent.mp4")
+    titled = None
+    if cfg.title is not None:
+        report("Adding your title…")
+        titled = overlay_title(silent, work / "montage_titled.mp4", cfg.title, cfg.crf, cfg.preset)
 
     music_start = cfg.music_start_s
     if music_start is None:
@@ -267,9 +273,10 @@ def run(
 
     report("Mixing audio and exporting the MP4…")
     if keep_game:
-        mux_mixed(silent, music, out, music_start, cfg.game_audio_volume, cfg.music_volume)
+        mux_mixed(titled or silent, music, out, music_start,
+                  cfg.game_audio_volume, cfg.music_volume)
     else:
-        mux_music(silent, music, out, music_start, cfg.music_volume)
+        mux_music(titled or silent, music, out, music_start, cfg.music_volume)
 
     manifest = {
         "beatcut_version": __version__,
@@ -289,6 +296,8 @@ def run(
             part.unlink(missing_ok=True)
         for leftover in (silent, work / "gameplay_audio.wav", work / "music.wav"):
             Path(leftover).unlink(missing_ok=True)
+        if titled is not None:
+            titled.unlink(missing_ok=True)
 
     report("Montage ready.")
     return manifest

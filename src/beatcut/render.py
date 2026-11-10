@@ -8,10 +8,12 @@ the price of frame accuracy; NVENC can be swapped in in M3.
 from __future__ import annotations
 
 import subprocess
+import textwrap
 from collections.abc import Sequence
 from pathlib import Path
 
 from .media import FFMPEG
+from .titles import validate_title
 from .types import Segment
 
 
@@ -72,6 +74,42 @@ def concat(parts: Sequence[str | Path], out: str | Path) -> Path:
         str(out),
     ]
     subprocess.run(cmd, check=True)
+    return out
+
+
+def overlay_title(video: str | Path, out: str | Path, title: dict,
+                  crf: int = 20, preset: str = "veryfast") -> Path:
+    """Burn literal UTF-8 text into the montage, retaining its existing audio."""
+    validate_title(title)
+    out = Path(out).resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    text_file = out.parent / "beatcut-title.txt"
+    text_file.write_text("\n".join(
+        textwrap.fill(line, width=28) for line in title["text"].splitlines()
+    ), encoding="utf-8")
+    font = next((path for path in (
+        Path("C:/Windows/Fonts/arial.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+    ) if path.is_file()), None)
+    font_path = font.as_posix().replace(":", "\\:") if font else ""
+    font_option = f"fontfile='{font_path}':" if font else "font=Sans:"
+    y = {"top": "h*0.08", "center": "(h-text_h)/2", "bottom": "h*0.92-text_h"}
+    graph = (
+        f"drawtext={font_option}textfile=beatcut-title.txt:expansion=none:"
+        f"fontcolor=0x{title['color'][1:]}:fontsize=min(h*{title['size']/100:.4f}\\,w/32):"
+        f"x=(w-text_w)/2:y={y[title['position']]}:borderw=2:bordercolor=black:"
+        f"box=1:boxcolor=black@0.45:boxborderw=8:"
+        f"enable='gte(t,{title['start']:.4f})*lt(t,{title['end']:.4f})'"
+    )
+    try:
+        subprocess.run([
+            FFMPEG, "-y", "-v", "error", "-i", str(Path(video).resolve()),
+            "-vf", graph, "-map", "0:v:0", "-map", "0:a?",
+            "-c:v", "libx264", "-preset", preset, "-crf", str(crf),
+            "-pix_fmt", "yuv420p", "-c:a", "copy", str(out),
+        ], check=True, cwd=out.parent)
+    finally:
+        text_file.unlink(missing_ok=True)
     return out
 
 

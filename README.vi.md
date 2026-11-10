@@ -55,6 +55,12 @@ hoặc bỏ chọn **Keep game audio** để chỉ giữ nhạc. Bấm **Apply a
 trong bản dựng và có thể hoàn tác bằng **Undo edit**, cùng với các lần chỉnh clip.
 Nguồn gameplay cần có âm thanh thì mới giữ được tiếng game.
 
+Mục **Text overlay** thêm một lớp chữ tối đa 120 ký tự, hỗ trợ tiếng Việt.
+Chọn thời gian trên **montage đã ghép**, vị trí trên/giữa/dưới, màu và cỡ chữ,
+rồi bấm **Apply title → Export edited MP4**. Xoá nội dung rồi áp dụng để bỏ chữ.
+Chữ được lưu trong project và hỗ trợ hoàn tác. Nếu cắt montage ngắn hơn mốc kết
+thúc chữ, hãy chỉnh thời gian chữ trước. Nội dung dài tự xuống dòng cho vừa khung.
+
 ## Vấn đề
 
 Dựng montage highlight bằng tay nghĩa là xem hàng giờ footage, nhớ timestamp, rồi
