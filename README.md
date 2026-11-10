@@ -50,6 +50,19 @@ Snap on. Later cuts may shift after trimming or reordering; Snap does not realig
 the whole montage. Applied edits are included in undo, saved projects and exports.
 Apply pending table edits before using the timeline.
 
+In **Audio mix**, set music and game volume from 0 (mute) to 2 (boost), or untick
+**Keep game audio**. Click **Apply audio mix**, then **Export edited MP4** to hear
+the result. Applied audio settings are saved in the project and restored by
+**Undo edit** alongside clip edits. Game sound requires audio in the original footage.
+
+For full-match footage on Windows, install `requirements.txt` in the project's
+`.venv`, then double-click **Start-BeatCut.cmd**. The local interface opens at
+[localhost:8501](http://localhost:8501), accepts gameplay up to 60 minutes and
+files up to 1024 MB each, and processes media on your computer. Keep the terminal
+open; press Ctrl+C to stop. The public demo retains its 60-second source limit.
+Use `scripts/start-local.ps1 -Port 8503 -MaxDurationSeconds 7200` for a different
+port or longer footage.
+
 ## The problem
 
 Editing a highlight montage by hand means watching hours of footage, remembering

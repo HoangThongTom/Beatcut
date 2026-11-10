@@ -269,7 +269,7 @@ def run(
     if keep_game:
         mux_mixed(silent, music, out, music_start, cfg.game_audio_volume, cfg.music_volume)
     else:
-        mux_music(silent, music, out, music_start)
+        mux_music(silent, music, out, music_start, cfg.music_volume)
 
     manifest = {
         "beatcut_version": __version__,

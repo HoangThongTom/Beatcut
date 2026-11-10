@@ -3,7 +3,7 @@ string first, which is the part that is easy to typo."""
 
 from __future__ import annotations
 
-from beatcut.render import mix_filter
+from beatcut.render import mix_filter, mux_music
 
 
 def test_mix_filter_reads_both_inputs():
@@ -29,3 +29,14 @@ def test_mix_filter_uses_the_requested_volumes():
 def test_mix_filter_limits_peaks():
     # A mastered track already peaks at 0 dBFS; summing on top clips without it.
     assert "alimiter" in mix_filter()
+
+
+def test_music_only_export_applies_volume_and_limiter(tmp_path, monkeypatch):
+    commands = []
+    monkeypatch.setattr("beatcut.render.subprocess.run", lambda cmd, **kw: commands.append(cmd))
+    mux_music("video.mp4", "song.wav", tmp_path / "out.mp4", 25, 0.25)
+    cmd = commands[0]
+    assert cmd[cmd.index("-ss") + 1] == "25.000"
+    assert cmd[cmd.index("-af") + 1] == (
+        "volume=0.250,alimiter=limit=0.95:level=false,apad"
+    )

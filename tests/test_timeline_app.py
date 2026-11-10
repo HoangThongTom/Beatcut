@@ -81,3 +81,35 @@ def test_timeline_trim_save_undo_snap_and_export(tmp_path, monkeypatch):
     assert not app.error
     assert exports == [(11.1, 14.4), (1.2, 3.5)]
     assert app.session_state["last_montage"]["duration"] == pytest.approx(5.6)
+
+    # Audio checkpoints must coexist with clip checkpoints, including undo and save/reopen.
+    next(s for s in app.slider if s.label == "Music volume").set_value(0.25)
+    next(s for s in app.slider if s.label == "Game volume").set_value(0.15)
+    next(c for c in app.checkbox if c.label == "Keep game audio").uncheck()
+    next(b for b in app.button if b.label == "Apply audio mix").click().run()
+    assert not app.exception
+    saved = load_project(save_project(app.session_state["edit_project"]))
+    assert saved["settings"]["music_volume"] == 0.25
+    assert saved["settings"]["game_audio_volume"] == 0.15
+    assert saved["settings"]["keep_game_audio"] is False
+    next(b for b in app.button if b.label == "Undo edit").click().run()
+    assert not app.exception
+    assert next(s for s in app.slider if s.label == "Music volume").value == 0.7
+    assert next(c for c in app.checkbox if c.label == "Keep game audio").value is True
+    assert app.session_state["edit_project"]["rows"] == saved["rows"]
+
+    next(s for s in app.slider if s.label == "Music volume").set_value(0.25)
+    next(c for c in app.checkbox if c.label == "Keep game audio").uncheck()
+    next(b for b in app.button if b.label == "Apply audio mix").click().run()
+    captured = []
+
+    def render_mix(video, music, output, cfg, **kwargs):
+        captured.append(cfg)
+        return run(video, music, output, cfg, **kwargs)
+
+    monkeypatch.setattr("beatcut.pipeline.run", render_mix)
+    next(b for b in app.button if b.label == "Export edited MP4").click().run()
+    assert not app.exception
+    assert not app.error
+    assert captured[0].music_volume == 0.25
+    assert captured[0].keep_game_audio is False

@@ -80,6 +80,7 @@ def mux_music(
     music: str | Path,
     out: str | Path,
     music_start_s: float = 0.0,
+    music_volume: float = 1.0,
 ) -> Path:
     """Replace the (already stripped) audio with the music track.
 
@@ -95,7 +96,7 @@ def mux_music(
         "-i", str(music),
         "-map", "0:v:0", "-map", "1:a:0",
         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k",
-        "-af", "apad",
+        "-af", f"volume={music_volume:.3f},alimiter=limit=0.95:level=false,apad",
         "-shortest",
         str(out),
     ]

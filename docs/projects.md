@@ -33,5 +33,12 @@ and the 0.1s minimum still apply. Reordering or trimming can shift later cuts;
 there is no automatic realignment of all cuts. Beats are loaded from the shared
 music cache, or detected without analyzing gameplay when a project is reopened.
 Only the resulting times are saved; the Snap toggle is a session preference.
+
+**Audio mix** changes music/game volume and whether game audio is kept. Click
+**Apply audio mix** before saving or exporting. These settings participate in
+the same undo history as clip edits, and reopen with the saved project. Export
+an edited MP4 to hear the applied mix; sliders do not alter an already rendered
+preview. Music volume also applies when game audio is disabled or absent.
+
 A saved selection is not an independent highlight annotation
 for the evaluation protocol: it was derived from BeatCut's proposed highlights.

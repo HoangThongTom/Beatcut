@@ -42,7 +42,8 @@ from beatcut.media import audio_duration, probe  # noqa: E402
 from beatcut.pipeline import run  # noqa: E402
 from beatcut.project import load_project, save_project  # noqa: E402
 
-MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "60"))
+LOCAL_MODE = os.environ.get("BEATCUT_LOCAL") == "1"
+MAX_DURATION_S = float(os.environ.get("BEATCUT_MAX_DURATION_S", "3600" if LOCAL_MODE else "60"))
 timeline = components.declare_component(
     "beatcut_timeline", path=str(Path(__file__).with_name("timeline")),
 )
@@ -60,6 +61,12 @@ def save_sources(uploads):
             path.write_bytes(content)
         paths.append(path)
     return paths
+
+
+def remember_edit(project):
+    project["history"].append({
+        "rows": copy.deepcopy(project["rows"]), "config": copy.deepcopy(project["config"]),
+    })
 
 st.set_page_config(page_title="BeatCut", page_icon="🎬", layout="centered")
 
@@ -101,10 +108,16 @@ with st.expander("How it works"):
         "4. Preview your montage and download the MP4."
     )
 
-st.caption(
-    f"Try it with a gameplay clip up to {MAX_DURATION_S:.0f} seconds. "
-    "Upload a shorter excerpt for this demo."
-)
+if LOCAL_MODE:
+    st.info(
+        f"Running on your computer · Gameplay up to {MAX_DURATION_S / 60:g} minutes. "
+        "Your gameplay and music are processed on this computer."
+    )
+else:
+    st.caption(
+        f"Try it with a gameplay clip up to {MAX_DURATION_S:.0f} seconds. "
+        "Upload a shorter excerpt for this demo."
+    )
 
 st.markdown('<div class="bc-section"><b>01</b><h2>Bring your footage & sound</h2></div>',
             unsafe_allow_html=True)
@@ -159,7 +172,7 @@ with st.expander("Open a saved project"):
                 info = probe(video_path)
                 music_duration = audio_duration(music_path)
                 if info.duration_s > MAX_DURATION_S:
-                    raise ValueError(f"This demo accepts gameplay up to {MAX_DURATION_S:.0f}s.")
+                    raise ValueError(f"Gameplay must be no longer than {MAX_DURATION_S:.0f}s.")
                 selection = rows_to_segments(saved["rows"], info.duration_s)
                 start = saved["settings"]["music_start_s"]
                 if start + sum(s.duration for s in selection) > music_duration:
@@ -194,8 +207,9 @@ if st.button("Render montage", type="primary", use_container_width=True):
 
         if info.duration_s > MAX_DURATION_S:
             st.error(
-                f"Video is {info.duration_s:.0f}s; this demo accepts up to "
-                f"{MAX_DURATION_S:.0f}s. Trim it or run the pipeline locally."
+                f"Video is {info.duration_s:.0f}s; the current limit is {MAX_DURATION_S:.0f}s. "
+                + ("Restart the local launcher with a higher -MaxDurationSeconds value."
+                   if LOCAL_MODE else "Trim it or open Start-BeatCut.cmd on your computer.")
             )
             st.stop()
 
@@ -313,7 +327,7 @@ if "edit_project" in st.session_state:
             st.error(str(exc))
         else:
             if reordered != project["rows"]:
-                project["history"].append(copy.deepcopy(project["rows"]))
+                remember_edit(project)
                 project["rows"] = reordered
                 st.session_state["edit_revision"] += 1
                 st.rerun()
@@ -339,12 +353,43 @@ if "edit_project" in st.session_state:
             except ValueError as exc:
                 st.error(str(exc))
             else:
-                project["history"].append(copy.deepcopy(project["rows"]))
+                remember_edit(project)
                 project["rows"] = copy.deepcopy(edited_rows)
                 st.session_state["edit_revision"] += 1
                 st.rerun()
+    st.markdown("**Audio mix**")
+    st.caption("0 = mute · 1 = original level · 2 = boost. "
+               "Game sound requires audio in the source. "
+               "Apply the mix, then export an edited MP4 to hear it.")
+    with st.form(f"audio_mix_{st.session_state['edit_revision']}"):
+        keep_game = st.checkbox("Keep game audio", value=project["config"]["keep_game_audio"])
+        game_col, song_col = st.columns(2)
+        game_volume = game_col.slider(
+            "Game volume", 0.0, 2.0, float(project["config"]["game_audio_volume"]),
+            step=0.05, format="%.2fx",
+        )
+        song_volume = song_col.slider(
+            "Music volume", 0.0, 2.0, float(project["config"]["music_volume"]),
+            step=0.05, format="%.2fx",
+        )
+        if st.form_submit_button("Apply audio mix"):
+            settings = {"keep_game_audio": keep_game, "game_audio_volume": game_volume,
+                        "music_volume": song_volume}
+            if any(project["config"][key] != value for key, value in settings.items()):
+                remember_edit(project)
+                project["config"].update(settings)
+                st.session_state["edit_revision"] += 1
+                st.rerun()
+    st.caption(f"Applied mix: music {project['config']['music_volume']:.2f}x · "
+               + (f"game {project['config']['game_audio_volume']:.2f}x"
+                  if project["config"]["keep_game_audio"] else "game muted"))
     if st.button("Undo edit", disabled=not project["history"]):
-        project["rows"] = project["history"].pop()
+        previous = project["history"].pop()
+        # Existing browser sessions can still contain row-only checkpoints.
+        if isinstance(previous, list):
+            project["rows"] = previous
+        else:
+            project["rows"], project["config"] = previous["rows"], previous["config"]
         st.session_state["edit_revision"] += 1
         st.rerun()
     selection = rows_to_segments(project["rows"], project["duration"])

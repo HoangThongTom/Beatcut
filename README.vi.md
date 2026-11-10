@@ -49,6 +49,12 @@ khi bật Snap. Cắt hay đổi thứ tự có thể làm các điểm nối ph
 không tự căn lại toàn bộ montage. Chỉnh sửa đã áp dụng được lưu trong lịch sử hoàn
 tác, bản dựng và MP4 xuất lại. Hãy áp dụng chỉnh sửa trong bảng trước khi dùng timeline.
 
+Trong **Audio mix**, chỉnh âm lượng nhạc và tiếng game từ 0 (tắt) đến 2 (tăng),
+hoặc bỏ chọn **Keep game audio** để chỉ giữ nhạc. Bấm **Apply audio mix**, rồi
+**Export edited MP4** để nghe kết quả. Thiết lập âm thanh đã áp dụng được lưu
+trong bản dựng và có thể hoàn tác bằng **Undo edit**, cùng với các lần chỉnh clip.
+Nguồn gameplay cần có âm thanh thì mới giữ được tiếng game.
+
 ## Vấn đề
 
 Dựng montage highlight bằng tay nghĩa là xem hàng giờ footage, nhớ timestamp, rồi
@@ -109,6 +115,26 @@ beatcut run data\raw\match.mp4 data\raw\song.mp3 -o outputs\montage.mp4
 
 Đặt bản ghi của bạn vào `data/raw/`. Không có gì trong `data/` được commit: một
 bản ghi 1080p60 dài một tiếng là vài GB, vượt xa mức Git nên chứa.
+
+### Giao diện chạy trên máy (video cả trận)
+
+Cài thêm giao diện một lần sau bước bootstrap:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Bấm đúp **Start-BeatCut.cmd** trong thư mục dự án. Trình duyệt mở
+[BeatCut local](http://localhost:8501), nhận gameplay tối đa **60 phút** và tệp tối
+đa **1024 MB**. Video được xử lý trên máy của bạn; không tải lên Streamlit Cloud.
+Giữ cửa sổ lệnh mở trong khi dùng, nhấn **Ctrl+C** để dừng. Link demo công khai
+vẫn giới hạn video nguồn 60 giây. Độ dài montage chọn riêng trong giao diện.
+
+Muốn đổi cổng hoặc nhận video dài hơn:
+
+```powershell
+.\scripts\start-local.ps1 -Port 8503 -MaxDurationSeconds 7200
+```
 
 ### Smoke test không cần footage
 
