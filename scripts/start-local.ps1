@@ -37,13 +37,13 @@ try {
         throw 'Missing dependencies. Run .\.venv\Scripts\python.exe -m pip install -r requirements.txt -e .'
     }
     Write-Host "BeatCut local: http://localhost:$Port" -ForegroundColor Cyan
-    Write-Host "Gameplay limit: $MaxDurationSeconds seconds. Upload limit: 1024 MB per file."
+    Write-Host "Gameplay limit: $MaxDurationSeconds seconds. Upload limit: 2048 MB per file."
     Write-Host 'Keep this window open. Press Ctrl+C to stop BeatCut.'
     $headless = if ($NoBrowser) { 'true' } else { 'false' }
     $entryPoint = if ($Annotate) { 'app/labeling_app.py' } else { 'app/streamlit_app.py' }
     & $python -m streamlit run $entryPoint `
         --server.address 127.0.0.1 --server.port $Port `
-        --server.maxUploadSize 1024 --server.headless $headless `
+        --server.maxUploadSize 2048 --server.headless $headless `
         --browser.gatherUsageStats false
     if ($LASTEXITCODE -ne 0) { throw "BeatCut stopped with exit code $LASTEXITCODE." }
 }

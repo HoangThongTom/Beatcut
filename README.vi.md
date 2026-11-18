@@ -138,7 +138,7 @@ Cài thêm giao diện một lần sau bước bootstrap:
 
 Bấm đúp **Start-BeatCut.cmd** trong thư mục dự án. Trình duyệt mở
 [BeatCut local](http://localhost:8501), nhận gameplay tối đa **60 phút** và tệp tối
-đa **1024 MB**. Video được xử lý trên máy của bạn; không tải lên Streamlit Cloud.
+đa **2048 MB (khoảng 2 GB)**. Video được xử lý trên máy của bạn; không tải lên Streamlit Cloud.
 Giữ cửa sổ lệnh mở trong khi dùng, nhấn **Ctrl+C** để dừng. Link demo công khai
 vẫn giới hạn video nguồn 60 giây. Độ dài montage chọn riêng trong giao diện.
 

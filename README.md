@@ -71,7 +71,7 @@ are saved in projects and support undo.
 For full-match footage on Windows, install `requirements.txt` in the project's
 `.venv`, then double-click **Start-BeatCut.cmd**. The local interface opens at
 [localhost:8501](http://localhost:8501), accepts gameplay up to 60 minutes and
-files up to 1024 MB each, and processes media on your computer. Keep the terminal
+files up to 2048 MB each, and processes media on your computer. Keep the terminal
 open; press Ctrl+C to stop. The public demo retains its 60-second source limit.
 Use `scripts/start-local.ps1 -Port 8503 -MaxDurationSeconds 7200` for a different
 port or longer footage.

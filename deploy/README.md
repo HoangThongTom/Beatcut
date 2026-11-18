@@ -10,7 +10,7 @@ Run `scripts/bootstrap.ps1`, then install the interface once:
 
 Double-click **Start-BeatCut.cmd**. The editor opens at
 [localhost:8501](http://localhost:8501) with a 60-minute gameplay limit and a
-1024 MB upload limit per file. Keep the terminal open while using the app.
+2048 MB upload limit per file. Keep the terminal open while using the app.
 The launcher uses `tools/ffmpeg/ffmpeg.exe` and `ffprobe.exe` when present,
 or the binaries on PATH. Explicit `FFMPEG_BIN` / `FFPROBE_BIN` environment
 variables take precedence.
