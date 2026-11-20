@@ -238,6 +238,17 @@ outputs/         montage đã render — gitignored
 
 ## Đánh giá
 
+Để xem thử dựng video khi chưa có nhãn thật, tạo demo ngẫu nhiên:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\make_random_demo.py data\raw\match_03.mp4 data\raw\match_04.mp4 data\raw\match_05.mp4 --music data\raw\song.mp3 --out outputs\random-demo --seed 42
+```
+
+Mỗi nguồn được lấy 5 đoạn ngẫu nhiên, mỗi đoạn 9 giây, có chữ nhận diện demo.
+MP4 và manifest ghi seed nằm riêng trong thư mục đầu ra mới; không ghi đè nhãn
+hay kết quả cũ. Chọn thư mục đầu ra khác nếu chạy lại. Đây là mẫu xem thử, không
+phải ground truth hoặc kết quả đánh giá precision@5.
+
 Bấm đúp **Start-Labeling.cmd** để mở công cụ gán nhãn độc lập tại
 [localhost:8503](http://localhost:8503). Mỗi người mở video gốc bằng đường dẫn
 trên máy, ghi mốc highlight và lưu file nhãn riêng. Công cụ không hiển thị đề xuất

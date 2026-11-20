@@ -230,6 +230,17 @@ outputs/         rendered montages — gitignored
 
 ## Evaluation
 
+For random montage previews before real labels are available:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\make_random_demo.py data\raw\match_03.mp4 data\raw\match_04.mp4 data\raw\match_05.mp4 --music data\raw\song.mp3 --out outputs\random-demo --seed 42
+```
+
+Each source contributes five random 9-second clips with a visible demo label.
+MP4s and manifests record the seeds in a new output directory; annotations and
+existing output directories are never overwritten. Use a fresh output directory
+to rerun. These previews are not ground truth or measured precision@5 results.
+
 Double-click **Start-Labeling.cmd** for independent source-only annotation at
 [localhost:8503](http://localhost:8503). Each person opens the original video by
 local path, marks highlights, and saves their own JSON without seeing montage
